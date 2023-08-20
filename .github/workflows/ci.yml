@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: ./.github/actions/setup-python
+  
+    - name: Set up Poetry
+      uses: ./.github/actions/setup-poetry
+
+    - name: Build the package
+      uses: ./.github/actions/build-package
+
+  lint:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: ./.github/actions/setup-python
+  
+    - name: Install the package
+      uses: ./.github/actions/install-package
+  
+    - name: Lint
+      uses: ./.github/actions/lint
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: ./.github/actions/setup-python
+
+    - name: Install the package
+      uses: ./.github/actions/install-package
+
+    - name: Test
+      uses: ./.github/actions/test

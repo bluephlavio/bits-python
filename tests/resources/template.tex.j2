@@ -1,0 +1,37 @@
+\documentclass{article}
+
+\usepackage{standalone}
+\usepackage[utf8]{inputenc}
+\usepackage[italian]{babel}
+\usepackage{fancyhdr}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{pgfplots}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{siunitx}
+
+
+\title{\VAR{title}}
+\author{\VAR{class_}}
+\date{\VAR{date}}
+
+\begin{document}
+
+\maketitle
+
+\BLOCK{ if blocks|length > 0 }
+\begin{enumerate}
+\BLOCK{ for block in blocks }
+\item \VAR{ block.render() }
+\BLOCK{ endfor }
+\end{enumerate}
+\BLOCK{ endif }
+
+\end{document}

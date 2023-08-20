@@ -1,0 +1,9 @@
+name: Setup Poetry
+
+runs:
+  using: composite
+  steps:
+  - name: Install Poetry
+    shell: bash
+    run: |
+      curl -sSL https://install.python-poetry.org | python3 -

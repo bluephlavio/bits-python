@@ -1,0 +1,22 @@
+name: Bump version
+
+on:
+  pull_request:
+    types: [opened]
+    branches: [main]
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.pull_request.head.ref }}
+
+    - name: Bump Version
+      uses: ./.github/actions/bump-version

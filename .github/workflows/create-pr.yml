@@ -1,0 +1,49 @@
+name: Create PR
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  check_bump:
+    runs-on: ubuntu-latest
+
+    outputs:
+      bump_needed: ${{ steps.check_bump.outputs.bump_needed }}
+      from_version: ${{ steps.check_bump.outputs.from_version }}
+      to_version: ${{ steps.check_bump.outputs.to_version }}
+    
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: ./.github/actions/setup-python
+  
+    - name: Install Commitizen
+      run: |
+        pip install commitizen
+  
+    - name: Check bump
+      id: check_bump
+      uses: ./.github/actions/check-bump
+
+  create-pr:
+    needs: check_bump
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+
+    - name: Create Pull Request
+      uses: ./.github/actions/create-pr
+      with:
+        token: ${{ secrets.PAT_TOKEN }}
+        title: |
+          ${{ github.event.head_commit.message }}

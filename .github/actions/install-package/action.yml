@@ -1,0 +1,15 @@
+name: Install package
+
+runs:
+  using: composite
+  steps:
+  - name: Download artifact
+    uses: actions/download-artifact@v3
+    with:
+      name: dist
+      path: dist
+
+  - name: Install the package
+    shell: bash
+    run: |
+      pip install ./dist/*.tar.gz

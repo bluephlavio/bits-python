@@ -1,0 +1,39 @@
+name: Create Pull Request
+
+inputs:
+  token:
+    description: The GitHub token to use
+    required: true
+  title:
+    description: The title of the pull request
+    required: true
+  base:
+    description: The base branch to create the pull request against
+    required: false
+    default: main
+  head:
+    description: The head branch to create the pull request from
+    required: false
+    default: dev
+
+runs:
+  using: composite
+  steps:
+
+  - name: Download artifact
+    uses: actions/download-artifact@v3
+    with:
+      name: bump-output
+
+  - name: Create Pull Request
+    id: create_pr
+    shell: bash
+    env:
+      GH_TOKEN: ${{ inputs.token }}
+    run: |
+      gh pr create \
+        --title "${{ inputs.title }}" \
+        --base "${{ inputs.base }}" \
+        --head "${{ inputs.head }}" \
+        --repo "${{ github.repository }}" \
+        --body-file bump-output.txt

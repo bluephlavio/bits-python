@@ -1,0 +1,26 @@
+default_install_hook_types:
+- commit-msg
+- pre-commit
+
+repos:
+- repo: local
+  hooks:
+  - id: check-dev-against-main
+    name: Check dev against main
+    description: >
+      Check whether the current branch is up-to-date with the main branch.
+    entry: ./scripts/check-dev-against-main.sh
+    language: script
+    stages: [pre-commit]
+- repo: https://github.com/commitizen-tools/commitizen
+  rev: v3.6.0
+  hooks:
+  - id: commitizen
+    name: Check commit message format
+    description: >
+      Check whether the current commit message follows commiting rules. Allow
+      empty commit messages by default, because they typically indicate to Git
+      that the commit should be aborted.
+    entry: cz check
+    args: [--allow-abort, --commit-msg-file]
+    stages: [commit-msg]

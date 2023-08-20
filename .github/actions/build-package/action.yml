@@ -1,0 +1,15 @@
+name: Build package
+
+runs:
+  using: composite
+  steps:
+  - name: Build the package
+    shell: bash
+    run: |
+      poetry build
+
+  - name: Upload artifact
+    uses: actions/upload-artifact@v3
+    with:
+      name: dist
+      path: dist

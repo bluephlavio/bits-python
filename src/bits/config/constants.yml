@@ -1,0 +1,4 @@
+G:
+  name: Costante di Gravitazione Universale
+  symbol: $G$
+  value: $\SI{6.67e-11}{\newton\metre\squared\per\kilo\gram\squared}$

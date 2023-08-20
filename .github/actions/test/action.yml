@@ -1,0 +1,14 @@
+name: Test
+
+runs:
+  using: composite
+  steps:
+  - name: Install the tools
+    shell: bash
+    run: |
+      pip install pytest pytest-cov
+
+  - name: Run pytest
+    shell: bash
+    run: |
+      pytest

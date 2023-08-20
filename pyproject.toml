@@ -1,0 +1,77 @@
+[tool.poetry]
+name = "bits"
+version = "0.1.2"
+description = "A tool to maintain a collection of latex bits and insert them into a latex template."
+authors = ["Flavio Grandin <flavio.grandin@gmail.com>"]
+packages = [{ include = "bits", from = "src" }]
+
+[tool.poetry.dependencies]
+python = "^3.8.1"
+typer = "^0.4.1"
+Jinja2 = "^3.1.1"
+watchdog = "^2.1.8"
+configparser = "^5.2.0"
+pydantic = "^1.9.2"
+python-frontmatter = "^1.0.0"
+PyYAML = "^6.0"
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^3.2.0"
+ipython = "^8.11.0"
+black = "^23.1.0"
+isort = "^5.12.0"
+pyproject-flake8 = "^6.0.0.post1"
+pylint = "^2.17.2"
+poethepoet = "^0.19.0"
+pytest = "^7.2.2"
+pytest-cov = "^4.0.0"
+commitizen = "^2.42.1"
+
+[tool.poetry.scripts]
+bits = "bits.cli:app"
+
+[tool.pylint]
+max-line-length = 88
+disable = [
+       "missing-module-docstring",
+       "missing-class-docstring",
+       "missing-function-docstring",
+       "cyclic-import"
+]
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+line_length = 88
+multi_line_output = 3
+include_trailing_comma = true
+use_parentheses = true
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = ["--cov=src"]
+
+[tool.poe.tasks]
+isort = "isort --profile=black --settings-path=pyproject.toml src tests"
+black = "black --config=pyproject.toml src tests"
+format = ["isort", "black"]
+pylint = "pylint --rcfile=pyproject.toml src tests"
+lint = ["pylint"]
+pytest = "pytest"
+test = ["pytest"]
+clean = { shell = "rm -rf .coverage .pytest_cache tests/artifacts/* dist && find . -type d -name '__pycache__' -exec rm -r {} +" }
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.1.2"
+tag_format = "v$version"
+bump_message = "build: version $current_version → $new_version"
+version_files = [
+  "pyproject.toml:version"
+]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
