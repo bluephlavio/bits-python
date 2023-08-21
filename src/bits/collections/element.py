@@ -1,3 +1,4 @@
+import re
 import uuid
 from typing import List, Union
 
@@ -34,7 +35,10 @@ class Element:
         return self._metadata["id"] == id_
 
     def match_by_name(self, name: str | None) -> bool:
-        return self._metadata["name"] == name
+        if name is not None:
+            pattern = re.compile(name)
+            return bool(pattern.match(self._metadata["name"]))
+        return False
 
     def match_by_tags(self, tags: List[str] | None) -> bool:
         if tags is not None and len(tags) > 0:
