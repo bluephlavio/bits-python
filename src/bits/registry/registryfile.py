@@ -41,8 +41,11 @@ class RegistryFile(Registry):
         bits_src: List[str] = post.content.split("---")
 
         for bit_src in bits_src:
-            bit: Bit = self._parse_bit(bit_src)
-            self._bits.append(bit)
+            try:
+                bit: Bit = self._parse_bit(bit_src)
+                self._bits.append(bit)
+            except AttributeError:
+                continue
 
         if not as_dep:
             self._targets.clear()
