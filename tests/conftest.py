@@ -10,6 +10,5 @@ def resources():
 
 
 @pytest.fixture(scope="session")
-def bitsfile(resources):  # pylint: disable=redefined-outer-name
-    path = resources / "bitsfile.md"
-    return path.resolve()
+def bitsfiles(resources):  # pylint: disable=redefined-outer-name
+        return [path.resolve() for path in resources.glob("*.md")]

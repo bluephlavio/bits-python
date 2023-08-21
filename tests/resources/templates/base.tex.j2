@@ -1,0 +1,190 @@
+\documentclass{article}
+
+\usepackage[fontsize=\VAR{fontsize or "13pt"}]{scrextend}
+\usepackage[utf8]{inputenc}
+\usepackage[italian]{babel}
+\usepackage{fancyhdr}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{pgfplots}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{siunitx}
+
+\geometry{a4paper, \VAR{ geometry or "margin=2cm" }}
+
+\fancypagestyle{plain}{%
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.1pt}
+\rhead{\emph{A.S. 2022/23}}
+\lhead{\uppercase{Liceo A. Avogadro}}
+}
+
+\sisetup{output-decimal-marker={,},exponent-product=\cdot,per-mode=fraction}
+
+\DeclareSIUnit\atm{atm}
+\DeclareSIUnit\dioptre{D}
+\DeclareSIUnit\year{anno}
+
+\usetikzlibrary{quotes,angles,patterns,arrows,arrows.meta,calc,intersections,shapes,positioning,decorations.pathreplacing,decorations.markings}
+
+\tikzset{point/.style={circle,fill,black!80,inner sep=0pt,minimum size=#1,opacity=0.9}}
+\tikzset{point/.default=3pt}
+\tikzset{vector/.style={line width=1pt,postaction={decorate,decoration={markings,mark=at position 1 with {\arrow{latex}}}}}}
+\tikzset{block/.style={rectangle,fill=black!30,draw,minimum size=#1,opacity=0.9,align=center}}
+\tikzset{block/.default=15pt}
+\tikzset{ball/.style={circle,fill=black!30,draw,minimum size=#1,opacity=0.9}}
+\tikzset{ball/.default=5pt}
+\tikzset{pulley/.style={draw=black,line width=0.2pt,circle,minimum size=#1,inner sep=0pt,fill=black!10}}
+\tikzset{pulley/.default=20pt}
+\tikzset{rod/.style={line width=1.2pt}}
+\tikzset{rope/.style={line width=1pt}}
+\tikzset{spring/.style={decorate,decoration={coil,amplitude=5pt,segment length=#1,aspect=0.3}}}
+\tikzset{spring/.default=5pt}
+\tikzset{wall/.style={black!10,pattern=north east lines,opacity=0.3}}
+\tikzset{ray/.style={line width=0.8pt,postaction={decorate,decoration={markings,mark=at position 0.5 with {\arrow{>}}}}}}
+\tikzset{arrow/.style={-latex}}
+\tikzset{object/.style={line width=1pt,orange,-latex}}
+\tikzset{image/.style={line width=1pt,blue,-latex}}
+\tikzset{doublearrow/.style={<->,>=latex,thick}}
+\tikzset{brace/.style={decorate,decoration={brace,amplitude=#1}}}
+\tikzset{brace/.default=5pt}
+
+\pgfplotsset{compat=newest}
+\usepgfplotslibrary{fillbetween}
+
+\newcommand{\half}{$\frac{1}{2}$}
+\newcommand{\vf}{\framebox{V} \framebox{F}}
+\newcommand{\opts}[4]{\vspace{5pt}\newline\makebox[0.2\linewidth][l]{\framebox{A}\quad#1}\qquad\makebox[0.2\linewidth][l]{\framebox{B}\quad#2}\qquad\makebox[0.2\linewidth][l]{\framebox{C}\quad#3}\qquad\makebox[0.2\linewidth][l]{\framebox{D}\quad#4}}
+\newcommand{\cell}[1]{%
+    \begin{tabular}{@{}c@{}}#1\end{tabular}%
+}
+\newcommand{\lateraleye}[1]{%
+\scalebox{0.2}{
+\tikzset{every picture/.style={line width=0.75pt}}
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+\draw  [draw=#1,line width=1.5]  (300,100.33) .. controls (326,122) and (352,135) .. (378,139.33) .. controls (352,143.67) and (326,156.67) .. (300,178.33);
+\draw  [draw=#1,fill=#1,fill opacity=1 ] (308.94,116.33) .. controls (313.87,116.33) and (317.86,125.51) .. (317.85,136.83) .. controls (317.84,148.15) and (313.84,157.33) .. (308.91,157.33) .. controls (303.99,157.32) and (300,148.14) .. (300.01,136.82) .. controls (300.02,125.5) and (304.02,116.32) .. (308.94,116.33) -- cycle;
+\draw  [draw=#1,draw opacity=0][line width=1.5]  (314.84,166.6) .. controls (311.87,164.64) and (309.14,162.18) .. (306.76,159.24) .. controls (295.12,144.82) and (296.6,124.33) .. (310.07,113.45) .. controls (311.48,112.32) and (312.96,111.33) .. (314.5,110.49) -- (331.14,139.55) -- cycle;
+\draw  [draw=#1,line width=1.5]  (314.84,166.6) .. controls (311.87,164.64) and (309.14,162.18) .. (306.76,159.24) .. controls (295.12,144.82) and (296.6,124.33) .. (310.07,113.45) .. controls (311.48,112.32) and (312.96,111.33) .. (314.5,110.49);
+\draw  [draw=#1,fill={rgb, 255:red, 255; green, 255; blue, 255 },fill opacity=1] (304.43,124.2) .. controls (306.09,124.25) and (307.32,128.01) .. (307.18,132.6) .. controls (307.05,137.19) and (305.59,140.88) .. (303.93,140.83) .. controls (302.27,140.78) and (301.03,137.02) .. (301.17,132.43) .. controls (301.31,127.83) and (302.76,124.15) .. (304.43,124.2) -- cycle;
+\end{tikzpicture}
+}\,}
+
+\newcolumntype{L}[1]{>{\hsize=#1\hsize\raggedright\arraybackslash}X}
+\newcolumntype{R}[1]{>{\hsize=#1\hsize\raggedleft\arraybackslash}X}
+
+\pagenumbering{gobble}
+
+\title{\vspace{-2\baselineskip}{\small \VAR{subtitle}}\\{\VAR{title}}}
+\author{\VAR{class_} \BLOCK{ if type }\emph{\VAR{type}}\BLOCK{ endif }}
+\date{\VAR{date}}
+
+\begin{document}
+
+\maketitle
+
+\section*{Quesiti}
+
+\begin{enumerate}
+    \BLOCK{ for block in blocks }%
+    \item%
+        \BLOCK{ if metadata }%
+            \textbf{{\color{red} id:} \VAR{ block.bit.id }\\ {\color{red} name:} \VAR{ block.bit.name }\\ {\color{red} tags:} \VAR{ block.bit.tags|join(", ")|replace("#", "\#") } } \\ \vspace{5pt} \\%
+        \BLOCK{ endif }%
+        \VAR{ block.render() }%
+        \vspace{\VAR{ spaces or "15pt" }}%
+    \BLOCK{ endfor }%
+\end{enumerate}
+
+\BLOCK{ if constants }%
+    \section*{Costanti}
+    \begin{table}[H]
+        \centering
+        \small
+        \begin{tabularx}{\textwidth}{Xcl}
+            \toprule
+            \textbf{Nome} & \textbf{Simbolo} & \textbf{Valore}\\
+            \midrule
+            \BLOCK{ for constant in constants }%
+                \VAR{ constant["name"] } & \VAR{ constant["symbol"] } & \VAR{ constant["value"] }\\
+            \BLOCK{ endfor }%
+            \bottomrule
+        \end{tabularx}
+    \end{table}
+\BLOCK{ endif }%
+
+\BLOCK{ if page_break_for_grid }
+    \newpage
+\BLOCK{ endif }
+
+\section*{Griglia di Valutazione}
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{X*{\VAR{ blocks|length }}{L{.2}@{/}R{.2}}}
+\toprule
+& \multicolumn{\VAR{ blocks|length * 2 }}{c}{\textbf{Quesiti}}\\
+\cmidrule{1-\VAR{ blocks|length * 2 + 1 }}
+\multirow{2}{*}{\textbf{Descrittori}}
+\BLOCK{ for block in blocks }
+& \multicolumn{2}{c}{\textsc{Q\VAR{ loop.index }}}
+\BLOCK{ endfor } \\
+\BLOCK{ for block in blocks }
+& Pt & Rif
+\BLOCK{ endfor } \\
+\cmidrule{1-\VAR{ blocks|length * 2 + 1 }}
+\textit{Comprendere}\footnotemark[1]
+\BLOCK{ for block in blocks }
+& & \VAR{ block.metadata["pts"][0] }
+\BLOCK{ endfor }\\
+\cmidrule{1-\VAR{ blocks|length * 2 + 1 }}
+\textit{Individuare}\footnotemark[2]
+\BLOCK{ for block in blocks }
+& & \VAR{ block.metadata["pts"][1] }
+\BLOCK{ endfor }\\
+\cmidrule{1-\VAR{ blocks|length * 2 + 1 }}
+\textit{Sviluppare}\footnotemark[3]
+\BLOCK{ for block in blocks }
+& & \VAR{ block.metadata["pts"][2] }
+\BLOCK{ endfor }\\
+\cmidrule{1-\VAR{ blocks|length * 2 + 1 }}
+\textit{Argomentare}\footnotemark[4]
+\BLOCK{ for block in blocks }
+& & \VAR{ block.metadata["pts"][3] }
+\BLOCK{ endfor }\\
+\cmidrule{1-\VAR{ blocks|length * 2 + 1 }}
+Parziali
+\BLOCK{ for block in blocks }
+& & \VAR{ block.metadata["total_pts"] }
+\BLOCK{ endfor }\\
+\cmidrule{1-\VAR{ blocks|length * 2 + 1 }}
+\textbf{Totale} & \multicolumn{\VAR{ blocks|length * 2 }}{r}{\textbf{ / \VAR{ total_pts }}}\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{X*{16}{c}}
+\toprule
+\textbf{Punti} & \cell{0\\9} & \cell{10\\19} & \cell{20\\27} & \cell{28\\35} & \cell{36\\41} & \cell{42\\49} & \cell{50\\56} & \cell{57\\63} & \cell{64\\69} & \cell{70\\74} & \cell{75\\79} & \cell{80\\84} & \cell{85\\89} & \cell{90\\94} & \cell{95\\100}\\
+\midrule
+\textbf{Voto} & 3 & 3\half & 4 & 4\half & 5 & 5\half & 6 & 6\half & 7 & 7\half & 8 & 8\half & 9 & 9\half & 10\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\footnotetext[1]{Analizzare la situazione problematica, identificare i dati, interpretarli e formalizzarli in linguaggio matematico.}
+\footnotetext[2]{Mettere in campo strategie risolutive attraverso una modellizzazione del problema e individuare la strategia pi\'u adatta.}
+\footnotetext[3]{Risolvere la situazione problematica in maniera coerente, completa e corretta, applicando le regole ed eseguendo i calcoli necessari.}
+\footnotetext[4]{Commentare e giustificare opportunamente la scelta della strategia applicata, i passaggi fondamentali del processo esecutivo e la coerenza dei risultati.}
+
+\end{document}

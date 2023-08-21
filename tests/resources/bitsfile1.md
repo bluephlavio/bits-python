@@ -1,12 +1,13 @@
 ---
 targets:
-  - name: target
-    template: ./template.tex.j2
+  - name: target1
+    template: ./templates/problem-set.tex.j2
     dest: ../artifacts/
     context:
+      metadata: true
+      fontsize: 13pt
       title: Title
-      class_: Class
-      date: Date
+      subtitle: Subtitle
       blocks:
         - query:
             name: Mass of the Sun

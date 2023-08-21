@@ -17,8 +17,9 @@ def test_cli_help():
     )
 
 
-def test_cli_build(bitsfile):
-    result = subprocess.run(
-        ["bits", "build", str(bitsfile)], capture_output=True, check=True
-    )
-    assert result.returncode == 0
+def test_cli_build(bitsfiles):
+    for bitsfile in bitsfiles:
+        result = subprocess.run(
+            ["bits", "build", str(bitsfile)], capture_output=True, check=True
+        )
+        assert result.returncode == 0
