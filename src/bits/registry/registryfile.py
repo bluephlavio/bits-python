@@ -127,6 +127,7 @@ class RegistryFile(Registry):
             pass
 
         dest: Path = self._resolve_path(data.dest or ".")
+        dest = dest / f'{self._path.stem}-{self.name}.pdf' if dest.suffix == "" else dest
 
         target: Target = Target(template, context, dest, name=name, tags=tags)
         return target
