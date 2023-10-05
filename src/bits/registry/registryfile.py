@@ -91,8 +91,25 @@ class RegistryFile(Registry):
         registry: Registry = (
             self._resolve_registry(data.registry) if data.registry else self
         )
+
         bits: Collection[Bit] = registry.bits.query(**data.query.dict())
-        context: dict = data.context
+
+        context: dict = {k: v for k, v in data.context.items() if k not in ["blocks"]}
+
+        if "blocks" in data.context:
+            blocks: List[Block] = list(
+                chain(
+                    *map(
+                        self._parse_blocks,
+                        map(
+                            lambda blocks: BlocksModel(**blocks),
+                            data.context["blocks"],
+                        ),
+                    )
+                ),
+            )
+            context["blocks"] = blocks
+
         metadata: dict = data.metadata
 
         blocks: List[Block] = [
@@ -130,7 +147,7 @@ class RegistryFile(Registry):
             pass
 
         dest: Path = self._resolve_path(data.dest or ".")
-        dest = dest / f'{self._path.stem}-{name}.pdf' if dest.suffix == "" else dest
+        dest = dest / f"{self._path.stem}-{name}.pdf" if dest.suffix == "" else dest
 
         target: Target = Target(template, context, dest, name=name, tags=tags)
         return target

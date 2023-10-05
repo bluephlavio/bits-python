@@ -65,11 +65,7 @@ class Collection(Generic[T], MutableSequence[T]):
         result: Collection[T] = Collection(self._expected_type)
         element: T
         for element in self._data:
-            if (
-                element.match_by_name(name)
-                and element.match_by_tags(tags)
-                and all(element.match_by_metadata(k, v) for k, v in kwargs.items())
-            ):
+            if element.match_query(name=name, tags=tags, **kwargs):
                 result.append(element)
         return result
 

@@ -1,7 +1,12 @@
 FROM mcr.microsoft.com/devcontainers/base:jammy
 
 # Install texlive-full
-RUN apt-get update -y && apt-get install -y --no-install-recommends texlive-base
+RUN apt-get update -y && apt-get install -y --no-install-recommends \
+    texlive-base \
+    texlive-latex-base \
+    texlive-latex-extra \
+    texlive-science \
+    texlive-lang-italian
 
 # Install Python and pip
 RUN apt-get update -y && apt-get install -y --no-install-recommends software-properties-common python3 python3-pip && \

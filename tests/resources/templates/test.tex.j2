@@ -162,10 +162,10 @@
 \cmidrule{1-\VAR{ blocks|length * 2 + 1 }}
 Parziali
 \BLOCK{ for block in blocks }
-& & \VAR{ block.metadata["total_pts"] }
+& & \VAR{ block.metadata["pts"]|sum }
 \BLOCK{ endfor }\\
 \cmidrule{1-\VAR{ blocks|length * 2 + 1 }}
-\textbf{Totale} & \multicolumn{\VAR{ blocks|length * 2 }}{r}{\textbf{ / \VAR{ total_pts }}}\\
+\textbf{Totale} & \multicolumn{\VAR{ blocks|length * 2 }}{r}{\textbf{ / \VAR{ blocks|map(attribute='metadata.pts')|map('sum')|sum }}}\\
 \bottomrule
 \end{tabularx}
 \end{table}

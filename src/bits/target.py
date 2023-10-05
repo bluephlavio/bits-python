@@ -23,7 +23,7 @@ class Target(Element):
 
         self.template: Template = template
 
-        self.context: dict = Target.process_context(context)
+        self.context: dict = context
 
         if dest.suffix == "":
             self.dest: Path = dest / f"{self.name or self.id}.pdf"
@@ -31,14 +31,6 @@ class Target(Element):
             self.dest: Path = dest
         else:
             raise ValueError("Target destination must be a pdf file")
-
-    @staticmethod
-    def process_context(context: dict):
-        result = {**context}
-        if all(map(lambda block: "total_pts" in block.metadata, context["blocks"])):
-            total_pts = sum(block.metadata["total_pts"] for block in context["blocks"])
-            result["total_pts"] = total_pts
-        return result
 
     def render(self) -> None:
         def run():
