@@ -10,14 +10,7 @@ class Block:
     ):
         self.bit: Bit = bit
         self.context: dict = context or {}
-        self.metadata: dict = {**Block.process_metadata(metadata or {})}
-
-    @staticmethod
-    def process_metadata(metadata: dict):
-        result = {**metadata}
-        if "pts" in metadata and isinstance(metadata["pts"], list):
-            result["total_pts"] = sum(metadata["pts"])
-        return result
+        self.metadata: dict = metadata or {}
 
     def render(self):
         return self.bit.render(**self.context)
