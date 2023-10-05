@@ -1,6 +1,6 @@
 ---
 targets:
-  - name: target1
+  - name: target
     template: ./templates/problem-set.tex.j2
     dest: ../artifacts/
     context:

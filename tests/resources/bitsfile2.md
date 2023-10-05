@@ -1,7 +1,7 @@
 ---
 targets:
-  - name: target1
-    template: ./templates/base.tex.j2
+  - name: target
+    template: ./templates/test.tex.j2
     dest: ../artifacts/
     context:
       title: Title
