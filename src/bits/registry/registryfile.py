@@ -93,6 +93,9 @@ class RegistryFile(Registry):
         )
         bits: Collection[Bit] = registry.bits.query(**data.query.dict())
 
+        print(data.query.dict())
+        print(len(bits))
+
         context: dict = {k: v for k, v in data.context.items() if k not in ["blocks"]}
 
         if "blocks" in data.context:

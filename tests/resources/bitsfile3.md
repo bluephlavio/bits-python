@@ -5,7 +5,6 @@ targets:
     dest: ../artifacts/
     context:
       metadata: true
-      fontsize: 13pt
       title: Title
       subtitle: Subtitle
       blocks:
@@ -14,7 +13,7 @@ targets:
           context:
             blocks:
               - query:
-                  name: Equazione
+                  tags: [equazione]
 ---
 name:: Equazioni
 tags:: [equazioni]
