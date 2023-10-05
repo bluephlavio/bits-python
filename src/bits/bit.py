@@ -17,8 +17,16 @@ class Bit(Element):
         level: int | None = None,
         constants: List[str] | None = None,
         defaults: dict | None = None,
+        **kwargs,
     ):
-        super().__init__(name=name, tags=tags, author=author, kind=kind, level=level)
+        super().__init__(
+            name=name,
+            tags=tags,
+            author=author,
+            kind=kind,
+            level=level,
+            **kwargs
+        )
 
         self.src: str = src
 

@@ -14,10 +14,14 @@ targets:
             blocks:
               - query:
                   tags: [equazione]
+                  num: 2
+              - query:
+                  tags: [equazione]
+                  num: 3
 ---
 name:: Equazioni
 tags:: [equazioni]
-author:: Flavio Grandin
+num:: 1
 
 ```latex
 Risolvi le seguenti equazioni.
@@ -29,17 +33,15 @@ Risolvi le seguenti equazioni.
 \end{enumerate}
 ```
 ---
-name:: Equazione
 tags:: [equazione]
-author:: Flavio Grandin
+num:: 2
 
 ```latex
 $x+1=0$
 ```
 ---
-name:: Equazione
 tags:: [equazione]
-author:: Flavio Grandin
+num:: 3
 
 ```latex
 $x^2+1=0$

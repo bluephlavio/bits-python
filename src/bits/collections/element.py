@@ -34,18 +34,34 @@ class Element:
     def match_by_id(self, id_: str) -> bool:
         return self._metadata["id"] == id_
 
-    def match_by_name(self, name: str | None) -> bool:
-        if name is not None:
+    def match_by_name(self, name: str) -> bool:
+        if self.name is not None:
             pattern = re.compile(name)
-            return bool(pattern.match(self._metadata["name"]))
-        return True
+            match = pattern.match(self.name)
+            return bool(match)
+        return False
 
-    def match_by_tags(self, tags: List[str] | None) -> bool:
-        if tags is not None and len(tags) > 0:
+    def match_by_tags(self, tags: List[str]) -> bool:
+        if len(tags) > 0:
             return all(tag in self._metadata["tags"] for tag in tags)
-        return True
+        return False
 
-    def match_by_metadata(self, key: str, value) -> bool:
+    def match_by(self, key: str, value) -> bool:
         if value is not None:
-            return self._metadata[key] == value
-        return True
+            if key == "id":
+                return self.match_by_id(value)
+            if key == "name":
+                return self.match_by_name(value)
+            if key == "tags":
+                return self.match_by_tags(value)
+            try:
+                return self._metadata[key] == value
+            except KeyError:
+                return False
+        return False
+
+    def match_query(self, **kwargs) -> bool:
+        matches = [self.match_by(k, v) for k, v in kwargs.items() if v is not None]
+        if len(matches) > 0:
+            return all(matches)
+        return False
