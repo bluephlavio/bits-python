@@ -7,12 +7,10 @@
 			"settings": {
 				"workbench.colorTheme": "GitHub Dark",
 				"[python]": {
-					"python.defaultInterpreterPath": "~/.cache/pypoetry/virtualenvs/bits-ENjFu_FZ-py3.10/bin/python",
 					"pylint.args": [
 						"--rcfile=pyproject.toml"
 					],
 					"editor.formatOnSave": true,
-					"editor.defaultFormatter": "ms-python.black-formatter",
 					"black-formatter.args": [
 						"--config=pyproject.toml",
 						"--preview"
