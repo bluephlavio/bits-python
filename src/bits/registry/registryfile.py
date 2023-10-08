@@ -13,7 +13,7 @@ from ..bit import Bit
 from ..block import Block
 from ..collections import Collection
 from ..config import config
-from ..env import env
+from ..env import EnvironmentFactory
 from ..helpers import normalize_path
 from ..models import BlocksModel, TargetModel
 from ..target import Target
@@ -68,10 +68,9 @@ class RegistryFile(Registry):
 
     def _resolve_template(self, path: str) -> Template:
         template_path: Path = self._resolve_path(path)
-        with template_path.open("r", encoding="utf-8") as template_file:
-            src: str = template_file.read()
-            template: Template = env.from_string(src)
-            return template
+        env = EnvironmentFactory.get(templates_folder=template_path.parent)
+        template: Template = env.get_template(template_path.name)
+        return template
 
     def _parse_bit(self, src: str) -> Bit:
         src_match: re.Match = re.match(

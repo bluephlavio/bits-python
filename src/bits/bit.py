@@ -3,7 +3,7 @@ from typing import List
 from jinja2 import Template
 
 from .collections import Element
-from .env import env
+from .env import EnvironmentFactory
 
 
 class Bit(Element):
@@ -20,12 +20,7 @@ class Bit(Element):
         **kwargs,
     ):
         super().__init__(
-            name=name,
-            tags=tags,
-            author=author,
-            kind=kind,
-            level=level,
-            **kwargs
+            name=name, tags=tags, author=author, kind=kind, level=level, **kwargs
         )
 
         self.src: str = src
@@ -33,7 +28,7 @@ class Bit(Element):
         self.constants: List[str] = constants or []
         self.defaults: dict = defaults or {}
 
-        self.template: Template = env.from_string(self.src)
+        self.template: Template = EnvironmentFactory.get().from_string(self.src)
 
     @property
     def author(self) -> str | None:
