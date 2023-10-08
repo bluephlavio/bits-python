@@ -1,23 +1,46 @@
-from jinja2 import Environment
+# pylint: disable=too-few-public-methods
+from pathlib import Path
+from typing import Dict
 
-env = Environment(
-    block_start_string=r"\BLOCK{",
-    block_end_string=r"}",
-    variable_start_string=r"\VAR{",
-    variable_end_string=r"}",
-    comment_start_string=r"\#{",
-    comment_end_string=r"}",
-    line_statement_prefix=r"%%",
-    line_comment_prefix=r"%#",
-    trim_blocks=True,
-    autoescape=False,
-)
+from jinja2 import Environment, FileSystemLoader
 
-def floor_filter(value):
-    return int(value // 1)
+from .filters import ceil_filter, floor_filter
 
-def ceil_filter(value):
-    return int(value // 1 + (value % 1 > 0))
 
-env.filters['floor'] = floor_filter
-env.filters['ceil'] = ceil_filter
+class EnvironmentFactory:
+    _env_cache: Dict[str, Environment] = {}
+
+    @classmethod
+    def get(cls, templates_folder: Path | None = None) -> Environment:
+        if templates_folder is None:
+            env_key = "string"
+        else:
+            env_key = str(templates_folder)
+
+        if env_key in cls._env_cache:
+            return cls._env_cache[env_key]
+
+        if templates_folder is None:
+            loader = None
+        else:
+            loader = FileSystemLoader(str(templates_folder))
+
+        env = Environment(
+            loader=loader,
+            block_start_string=r"\BLOCK{",
+            block_end_string=r"}",
+            variable_start_string=r"\VAR{",
+            variable_end_string=r"}",
+            comment_start_string=r"\#{",
+            comment_end_string=r"}",
+            line_statement_prefix=r"%%",
+            line_comment_prefix=r"%#",
+            trim_blocks=True,
+            autoescape=False,
+        )
+
+        env.filters["floor"] = floor_filter
+        env.filters["ceil"] = ceil_filter
+
+        cls._env_cache[env_key] = env
+        return env

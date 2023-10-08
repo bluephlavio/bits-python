@@ -1,0 +1,61 @@
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{X*{\VAR{ blocks|length }}{L{.2}@{/}R{.2}}}
+\toprule
+& \multicolumn{\VAR{ blocks|length * 2 }}{c}{\textbf{Quesiti}}\\
+\cmidrule{1-\VAR{ blocks|length * 2 + 1 }}
+\multirow{2}{*}{\textbf{Descrittori}}
+\BLOCK{ for block in blocks }
+& \multicolumn{2}{c}{\textsc{Q\VAR{ loop.index }}}
+\BLOCK{ endfor } \\
+\BLOCK{ for block in blocks }
+& Pt & Rif
+\BLOCK{ endfor } \\
+\cmidrule{1-\VAR{ blocks|length * 2 + 1 }}
+\textit{Comprendere}\footnotemark[1]
+\BLOCK{ for block in blocks }
+& & \VAR{ block.metadata["pts"][0] }
+\BLOCK{ endfor }\\
+\cmidrule{1-\VAR{ blocks|length * 2 + 1 }}
+\textit{Individuare}\footnotemark[2]
+\BLOCK{ for block in blocks }
+& & \VAR{ block.metadata["pts"][1] }
+\BLOCK{ endfor }\\
+\cmidrule{1-\VAR{ blocks|length * 2 + 1 }}
+\textit{Sviluppare}\footnotemark[3]
+\BLOCK{ for block in blocks }
+& & \VAR{ block.metadata["pts"][2] }
+\BLOCK{ endfor }\\
+\cmidrule{1-\VAR{ blocks|length * 2 + 1 }}
+\textit{Argomentare}\footnotemark[4]
+\BLOCK{ for block in blocks }
+& & \VAR{ block.metadata["pts"][3] }
+\BLOCK{ endfor }\\
+\cmidrule{1-\VAR{ blocks|length * 2 + 1 }}
+Parziali
+\BLOCK{ for block in blocks }
+& & \VAR{ block.metadata["pts"]|sum }
+\BLOCK{ endfor }\\
+\cmidrule{1-\VAR{ blocks|length * 2 + 1 }}
+\textbf{Totale} & \multicolumn{\VAR{ blocks|length * 2 }}{r}{\textbf{ / \VAR{ blocks|map(attribute='metadata.pts')|map('sum')|sum }}}\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{X*{16}{c}}
+\toprule
+\textbf{Punti} & \cell{0\\9} & \cell{10\\19} & \cell{20\\27} & \cell{28\\35} & \cell{36\\41} & \cell{42\\49} & \cell{50\\56} & \cell{57\\63} & \cell{64\\69} & \cell{70\\74} & \cell{75\\79} & \cell{80\\84} & \cell{85\\89} & \cell{90\\94} & \cell{95\\100}\\
+\midrule
+\textbf{Voto} & 3 & 3\half & 4 & 4\half & 5 & 5\half & 6 & 6\half & 7 & 7\half & 8 & 8\half & 9 & 9\half & 10\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\footnotetext[1]{Analizzare la situazione problematica, identificare i dati, interpretarli e formalizzarli in linguaggio matematico.}
+\footnotetext[2]{Mettere in campo strategie risolutive attraverso una modellizzazione del problema e individuare la strategia pi\'u adatta.}
+\footnotetext[3]{Risolvere la situazione problematica in maniera coerente, completa e corretta, applicando le regole ed eseguendo i calcoli necessari.}
+\footnotetext[4]{Commentare e giustificare opportunamente la scelta della strategia applicata, i passaggi fondamentali del processo esecutivo e la coerenza dei risultati.}
