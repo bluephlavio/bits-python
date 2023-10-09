@@ -4,7 +4,7 @@ from typing import Dict
 
 from jinja2 import Environment, FileSystemLoader
 
-from .filters import ceil_filter, floor_filter
+from .filters import *
 
 
 class EnvironmentFactory:
@@ -41,6 +41,7 @@ class EnvironmentFactory:
 
         env.filters["floor"] = floor_filter
         env.filters["ceil"] = ceil_filter
+        env.filters["getitem"] = getitem_filter
 
         cls._env_cache[env_key] = env
         return env
