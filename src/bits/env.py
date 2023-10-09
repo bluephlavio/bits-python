@@ -4,7 +4,7 @@ from typing import Dict
 
 from jinja2 import Environment, FileSystemLoader
 
-from .filters import *
+from .filters import *  # pylint: disable=wildcard-import
 
 
 class EnvironmentFactory:
