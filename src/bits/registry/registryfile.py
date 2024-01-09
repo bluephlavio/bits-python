@@ -143,7 +143,7 @@ class RegistryFile(Registry):
             context["blocks"] = blocks
 
         if "constants" in data.context:
-            pass
+            context["constants"] = data.context["constants"]
 
         dest: Path = self._resolve_path(data.dest or ".")
         dest = dest / f"{self._path.stem}-{name}.pdf" if dest.suffix == "" else dest
