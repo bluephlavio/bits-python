@@ -1,18 +1,31 @@
 import configparser
+from configparser import ExtendedInterpolation
 import shutil
 from pathlib import Path
 
-BITS_CONFIG_DIR = Path("~/.bits").expanduser()
-BITS_CONFIG_FILE = BITS_CONFIG_DIR / "config.ini"
-BITS_TEMPLATES_DIR = BITS_CONFIG_DIR / "templates"
+GLOBAL_BITS_CONFIG_DIR = Path("~/.bits").expanduser()
+GLOBAL_BITS_CONFIG_FILE = GLOBAL_BITS_CONFIG_DIR / "config.ini"
+GLOBAL_BITS_TEMPLATES_DIR = GLOBAL_BITS_CONFIG_DIR / "templates"
 
-BITS_CONFIG_DIR_SRC = Path(__file__).parent / "config"
+GLOBAL_BITS_CONFIG_DIR_SRC = Path(__file__).parent / "config"
 
-if not BITS_CONFIG_DIR.exists():
-    Path.mkdir(BITS_CONFIG_DIR, parents=True)
+if not GLOBAL_BITS_CONFIG_DIR.exists():
+    Path.mkdir(GLOBAL_BITS_CONFIG_DIR, parents=True)
 
-shutil.copytree(BITS_CONFIG_DIR_SRC, BITS_CONFIG_DIR, dirs_exist_ok=True)
+shutil.copytree(GLOBAL_BITS_CONFIG_DIR_SRC, GLOBAL_BITS_CONFIG_DIR, dirs_exist_ok=True)
 
-config = configparser.ConfigParser()
+config = configparser.ConfigParser(interpolation=ExtendedInterpolation())
 
-config.read(BITS_CONFIG_FILE)
+config.read(GLOBAL_BITS_CONFIG_FILE)
+
+LOCAL_BITS_CONFIG_FILE = Path(".bitsrc")
+
+if LOCAL_BITS_CONFIG_FILE.exists():
+    local_config = configparser.ConfigParser(interpolation=ExtendedInterpolation())
+    local_config.read(LOCAL_BITS_CONFIG_FILE)
+
+    for section in local_config.sections():
+        if not config.has_section(section):
+            config.add_section(section)
+        for key, value in local_config.items(section):
+            config.set(section, key, value)

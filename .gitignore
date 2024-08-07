@@ -167,3 +167,5 @@ out
 
 # tests artifacts
 tests/artifacts
+
+.bitsrc
