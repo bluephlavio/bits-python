@@ -1010,24 +1010,6 @@ pytest = ">=4.6"
 testing = ["fields", "hunter", "process-tests", "pytest-xdist", "six", "virtualenv"]
 
 [[package]]
-name = "python-frontmatter"
-version = "1.0.0"
-description = "Parse and manage posts with YAML (or other) frontmatter"
-optional = false
-python-versions = "*"
-files = [
-    {file = "python-frontmatter-1.0.0.tar.gz", hash = "sha256:e98152e977225ddafea6f01f40b4b0f1de175766322004c826ca99842d19a7cd"},
-    {file = "python_frontmatter-1.0.0-py3-none-any.whl", hash = "sha256:766ae75f1b301ffc5fe3494339147e0fd80bc3deff3d7590a93991978b579b08"},
-]
-
-[package.dependencies]
-PyYAML = "*"
-
-[package.extras]
-docs = ["sphinx"]
-test = ["pyaml", "pytest", "toml"]
-
-[[package]]
 name = "pyyaml"
 version = "6.0"
 description = "YAML parser and emitter for Python"
@@ -1376,4 +1358,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "d8aea60f2e482ff60ad558d04ae1dcdfce657ea9375157e3c42c3f021d24eec4"
+content-hash = "5aa15849da7ebee85190e00f7a48faf1d1ed3d1dbb9aed71ccacc28515ab0a54"

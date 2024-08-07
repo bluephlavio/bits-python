@@ -12,7 +12,6 @@ Jinja2 = "^3.1.1"
 watchdog = "^2.1.8"
 configparser = "^5.2.0"
 pydantic = "^1.9.2"
-python-frontmatter = "^1.0.0"
 PyYAML = "^6.0"
 
 [tool.poetry.group.dev.dependencies]
