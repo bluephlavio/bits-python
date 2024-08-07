@@ -5,7 +5,6 @@ from itertools import chain
 from pathlib import Path
 from typing import List
 
-import frontmatter
 import yaml
 from jinja2 import Template
 
@@ -19,6 +18,25 @@ from ..models import BlocksModel, TargetModel
 from ..target import Target
 from .registry import Registry
 from .registry_factory import RegistryFactory
+
+var_pattern = re.compile(r"\$\{([^}]+)\}")
+
+yaml.add_implicit_resolver("!var", var_pattern)
+
+
+def interpolated_var_constructor(loader, node):
+    value = loader.construct_scalar(node)
+
+    def replace_var(match):
+        variable_name = match.group(1)
+        if config.has_option("variables", variable_name):
+            return config.get("variables", variable_name)
+        return match.group(0)
+
+    return var_pattern.sub(replace_var, value)
+
+
+yaml.add_constructor("!var", interpolated_var_constructor)
 
 
 class RegistryFile(Registry):
@@ -34,11 +52,22 @@ class RegistryFile(Registry):
         self.load(as_dep=as_dep)
 
     def load(self, as_dep: bool = False) -> None:
-        post: frontmatter.Post = frontmatter.load(self._path)
+        with open(self._path, "r", encoding="utf-8") as file:
+            content = file.read()
+
+        delimiter = "---"
+        parts = content.split(delimiter)
+        if len(parts) < 3:
+            raise ValueError("Invalid frontmatter format")
+
+        frontmatter_content = parts[1]
+        post_content = delimiter.join(parts[2:])
+
+        post_metadata = yaml.load(frontmatter_content, Loader=yaml.FullLoader)
 
         self._bits.clear()
 
-        bits_src: List[str] = post.content.split("---")
+        bits_src: List[str] = post_content.split("---")
 
         for bit_src in bits_src:
             try:
@@ -51,7 +80,7 @@ class RegistryFile(Registry):
             self._targets.clear()
 
             targets_data: List[TargetModel] = map(
-                lambda data: TargetModel(**data), post.metadata["targets"]
+                lambda data: TargetModel(**data), post_metadata["targets"]
             )
 
             for target_data in targets_data:

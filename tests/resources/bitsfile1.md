@@ -1,7 +1,7 @@
 ---
 targets:
   - name: target
-    template: ./templates/problem-set.tex.j2
+    template: ${templates}/problem-set.tex.j2
     dest: ../artifacts/
     context:
       metadata: true
