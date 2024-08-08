@@ -10,39 +10,31 @@ targets:
       blocks:
         - query:
             name: Equazioni
+        - query:
+            name: Equazioni
           context:
             blocks:
-              - query:
+              - registry: ./collection.md
+                query:
                   tags: [equazione]
-                  num: 2
-              - query:
-                  tags: [equazione]
-                  num: 3
+                  num: 1
 ---
 name:: Equazioni
 tags:: [equazioni]
-num:: 1
+defaults::
+  blocks:
+    - registry: ./collection.md
+      query:
+        tags: [equazione]
 
 ```latex
 Risolvi le seguenti equazioni.
 
+\BLOCK{ if blocks|length > 0 }
 \begin{enumerate}
 \BLOCK{ for block in blocks }
 \item \VAR{ block.render() }
 \BLOCK{ endfor }
 \end{enumerate}
-```
----
-tags:: [equazione]
-num:: 2
-
-```latex
-$x+1=0$
-```
----
-tags:: [equazione]
-num:: 3
-
-```latex
-$x^2+1=0$
+\BLOCK{ endif }
 ```

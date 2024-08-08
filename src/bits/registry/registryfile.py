@@ -76,6 +76,9 @@ class RegistryFile(Registry):
             except AttributeError:
                 continue
 
+        for bit in self._bits:
+            bit.defaults = self._parse_context(bit.defaults)
+
         if not as_dep:
             self._targets.clear()
 
@@ -101,6 +104,30 @@ class RegistryFile(Registry):
         template: Template = env.get_template(template_path.name)
         return template
 
+    def _parse_context(self, data: dict) -> dict:
+        context: dict = {
+            k: v for k, v in data.items() if k not in ["blocks", "constants"]
+        }
+
+        if "blocks" in data:
+            blocks: List[Block] = list(
+                chain(
+                    *map(
+                        self._parse_blocks,
+                        map(
+                            lambda blocks: BlocksModel(**blocks),
+                            data["blocks"],
+                        ),
+                    )
+                ),
+            )
+            context["blocks"] = blocks
+
+        if "constants" in data:
+            context["constants"] = data["constants"]
+
+        return context
+
     def _parse_bit(self, src: str) -> Bit:
         src_match: re.Match = re.match(
             r"^\s*(?P<header>[\S\s]*)\s*```latex\s*(?P<content>[\S\s]*)\s*```\s*$",
@@ -122,21 +149,7 @@ class RegistryFile(Registry):
 
         bits: Collection[Bit] = registry.bits.query(**data.query.dict())
 
-        context: dict = {k: v for k, v in data.context.items() if k not in ["blocks"]}
-
-        if "blocks" in data.context:
-            blocks: List[Block] = list(
-                chain(
-                    *map(
-                        self._parse_blocks,
-                        map(
-                            lambda blocks: BlocksModel(**blocks),
-                            data.context["blocks"],
-                        ),
-                    )
-                ),
-            )
-            context["blocks"] = blocks
+        context: dict = self._parse_context(data.context)
 
         metadata: dict = data.metadata
 

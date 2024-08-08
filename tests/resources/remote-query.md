@@ -10,7 +10,7 @@ targets:
       type: null
       date: Date
       blocks:
-        - registry: ./bitsfile1.md
+        - registry: ./collection.md
           query:
             name: Mass of the Sun
           metadata:
