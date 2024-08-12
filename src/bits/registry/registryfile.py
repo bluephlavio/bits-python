@@ -1,39 +1,52 @@
 from __future__ import annotations
 from pathlib import Path
-from abc import ABC, abstractmethod
 from typing import List
-from itertools import chain
 
 from jinja2 import Template
 
 from .registry import Registry
 from .registry_factory import RegistryFactory
+from .registryfile_parsers import RegistryFileMdParser, RegistryFileYamlParser
 from ..block import Block
 from ..collections import Collection
 from ..config import config
 from ..env import EnvironmentFactory
 from ..helpers import normalize_path
-from ..models import BlocksModel, TargetModel
+from ..models import BlocksModel, TargetModel, RegistryDataModel
 from ..target import Target
 from ..bit import Bit
 
 
-class RegistryFile(Registry, ABC):
+class RegistryFile(Registry):
     # pylint: disable=unused-argument
     def __init__(self, path: Path, as_dep: bool = False):
         super().__init__(path)
         if not self._path.is_file():
             raise IsADirectoryError
-        self._check_file_type()
+        if self._path.suffix in [".yml", ".yaml"]:
+            self._parser = RegistryFileYamlParser()
+        elif self._path.suffix == ".md":
+            self._parser = RegistryFileMdParser()
+        else:
+            raise ValueError(f"Unsupported file format: {self._path.suffix}")
         self.load(as_dep=as_dep)
 
-    @abstractmethod
-    def _check_file_type(self):
-        pass
-
-    @abstractmethod
     def load(self, as_dep: bool = False):
-        pass
+        registryfile_model: RegistryDataModel = self._parser.parse(self._path)
+
+        for bit_model in registryfile_model.bits:
+            src: str = bit_model.src
+            meta: dict = bit_model.dict(exclude={"src"})
+            bit: Bit = Bit(src, **meta)
+            self._bits.append(bit)
+
+        for bit in self._bits:
+            bit.defaults = self._resolve_context(bit.defaults)
+
+        if not as_dep:
+            for target_model in registryfile_model.targets:
+                target: Target = self._resolve_target(target_model)
+                self._targets.append(target)
 
     def _resolve_path(self, path: str) -> Path:
         return normalize_path(path, relative_to=self._path)
@@ -49,23 +62,17 @@ class RegistryFile(Registry, ABC):
         template: Template = env.get_template(template_path.name)
         return template
 
-    def _parse_context(self, data: dict) -> dict:
+    def _resolve_context(self, data: dict) -> dict:
         context: dict = {
             k: v for k, v in data.items() if k not in ["blocks", "constants"]
         }
 
         if "blocks" in data:
-            blocks: List[Block] = list(
-                chain(
-                    *map(
-                        self._parse_blocks,
-                        map(
-                            lambda blocks: BlocksModel(**blocks),
-                            data["blocks"],
-                        ),
-                    )
-                ),
-            )
+            blocks: List[Block] = [
+            block
+            for blocks_data in data["blocks"]
+            for block in self._resolve_blocks(BlocksModel(**blocks_data))
+            ]
             context["blocks"] = blocks
 
         if "constants" in data:
@@ -73,14 +80,14 @@ class RegistryFile(Registry, ABC):
 
         return context
 
-    def _parse_blocks(self, data: BlocksModel) -> List[Block]:
+    def _resolve_blocks(self, data: BlocksModel) -> List[Block]:
         registry: Registry = (
             self._resolve_registry(data.registry) if data.registry else self
         )
 
         bits: Collection[Bit] = registry.bits.query(**data.query.dict())
 
-        context: dict = self._parse_context(data.context)
+        context: dict = self._resolve_context(data.context)
 
         metadata: dict = data.metadata
 
@@ -89,7 +96,7 @@ class RegistryFile(Registry, ABC):
         ]
         return blocks
 
-    def _parse_target(self, data: TargetModel) -> Target:
+    def _resolve_target(self, data: TargetModel) -> Target:
         name: str | None = data.name
         tags: List[str] = data.tags or []
 
@@ -97,26 +104,7 @@ class RegistryFile(Registry, ABC):
             data.template or config.get("DEFAULT", "template")
         )
 
-        context: dict = {
-            k: v for k, v in data.context.items() if k not in ["blocks", "constants"]
-        }
-
-        if "blocks" in data.context:
-            blocks: List[Block] = list(
-                chain(
-                    *map(
-                        self._parse_blocks,
-                        map(
-                            lambda blocks: BlocksModel(**blocks),
-                            data.context["blocks"],
-                        ),
-                    )
-                ),
-            )
-            context["blocks"] = blocks
-
-        if "constants" in data.context:
-            context["constants"] = data.context["constants"]
+        context: dict = self._resolve_context(data.context)
 
         dest: Path = self._resolve_path(data.dest or ".")
         dest = dest / f"{self._path.stem}-{name}.pdf" if dest.suffix == "" else dest
