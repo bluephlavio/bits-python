@@ -66,3 +66,14 @@ class RegistryFileYamlParser(RegistryFileParser):
         )
 
         return RegistryDataModel(bits=bits, targets=targets)
+
+
+class RegistryFileParserFactory:
+    @staticmethod
+    def get(path: Path) -> RegistryFileParser:
+        if path.suffix in [".yml", ".yaml"]:
+            return RegistryFileYamlParser()
+        elif path.suffix == ".md":
+            return RegistryFileMdParser()
+        else:
+            raise ValueError(f"Unsupported file format: {path.suffix}")

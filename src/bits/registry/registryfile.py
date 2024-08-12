@@ -6,13 +6,14 @@ from jinja2 import Template
 
 from .registry import Registry
 from .registry_factory import RegistryFactory
-from .registryfile_parsers import RegistryFileMdParser, RegistryFileYamlParser
+from .registryfile_parsers import RegistryFileParserFactory
+from .registryfile_dumpers import RegistryFileDumperFactory
 from ..block import Block
 from ..collections import Collection
 from ..config import config
 from ..env import EnvironmentFactory
 from ..helpers import normalize_path
-from ..models import BlocksModel, TargetModel, RegistryDataModel
+from ..models import BitModel, BlocksModel, TargetModel, RegistryDataModel
 from ..target import Target
 from ..bit import Bit
 
@@ -23,12 +24,7 @@ class RegistryFile(Registry):
         super().__init__(path)
         if not self._path.is_file():
             raise IsADirectoryError
-        if self._path.suffix in [".yml", ".yaml"]:
-            self._parser = RegistryFileYamlParser()
-        elif self._path.suffix == ".md":
-            self._parser = RegistryFileMdParser()
-        else:
-            raise ValueError(f"Unsupported file format: {self._path.suffix}")
+        self._parser = RegistryFileParserFactory.get(self._path)
         self.load(as_dep=as_dep)
 
     def load(self, as_dep: bool = False):
@@ -69,9 +65,9 @@ class RegistryFile(Registry):
 
         if "blocks" in data:
             blocks: List[Block] = [
-            block
-            for blocks_data in data["blocks"]
-            for block in self._resolve_blocks(BlocksModel(**blocks_data))
+                block
+                for blocks_data in data["blocks"]
+                for block in self._resolve_blocks(BlocksModel(**blocks_data))
             ]
             context["blocks"] = blocks
 
@@ -111,3 +107,19 @@ class RegistryFile(Registry):
 
         target: Target = Target(template, context, dest, name=name, tags=tags)
         return target
+
+    def to_registry_data_model(self) -> RegistryDataModel:
+        bits = [bit.to_bit_model() for bit in self.bits]
+        targets = [target.to_target_model() for target in self.targets]
+        return RegistryDataModel(bits=bits, targets=targets)
+
+    def dump(self, path: Path):
+        dumper = RegistryFileDumperFactory.get(path)
+        bits: List[BitModel] = [bit.to_model() for bit in self.bits]
+        targets: List[TargetModel] = [
+            target.to_model() for target in self.targets
+        ]
+        registry_data_model: RegistryDataModel = RegistryDataModel(
+            bits=bits, targets=targets
+        )
+        dumper.dump(registry_data_model, path)

@@ -7,6 +7,7 @@ from typing import List
 from jinja2 import Template
 
 from .collections import Element
+from .models import TargetModel
 from .helpers import tmpdir, write
 
 
@@ -55,3 +56,12 @@ class Target(Element):
         process: Process = Process(target=run)
         process.start()
         process.join()
+
+    def to_model(self) -> TargetModel:
+        return TargetModel(
+            name=self.name,
+            tags=self.tags,
+            template=self.template.filename,
+            context=self.context,
+            dest=self.dest,
+        )
