@@ -29,6 +29,12 @@ def render(path: Path, watch: bool = typer.Option(False)):
     registry.render()
 
     if watch:
+
+        def reload_and_rerender(event):  # pylint: disable=unused-argument
+            registry.load(as_dep=False)
+            registry.render()
+
+        registry.add_listener(reload_and_rerender)
         registry.watch()
 
         try:

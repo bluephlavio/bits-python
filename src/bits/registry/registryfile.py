@@ -30,6 +30,9 @@ class RegistryFile(Registry):
     def load(self, as_dep: bool = False):
         registryfile_model: RegistryDataModel = self._parser.parse(self._path)
 
+        self._bits.clear()
+        self._targets.clear()
+
         for bit_model in registryfile_model.bits:
             src: str = bit_model.src
             meta: dict = bit_model.dict(exclude={"src"})
@@ -116,9 +119,7 @@ class RegistryFile(Registry):
     def dump(self, path: Path):
         dumper = RegistryFileDumperFactory.get(path)
         bits: List[BitModel] = [bit.to_model() for bit in self.bits]
-        targets: List[TargetModel] = [
-            target.to_model() for target in self.targets
-        ]
+        targets: List[TargetModel] = [target.to_model() for target in self.targets]
         registry_data_model: RegistryDataModel = RegistryDataModel(
             bits=bits, targets=targets
         )

@@ -17,7 +17,6 @@ class Registry(ABC):
         self._path: Path = path
 
         self._watcher: Watcher = Watcher(self._path)
-        self._watcher.add_listener(self.load)
 
         self._bits: Collection[Bit] = Collection(Bit)
         self._targets: Collection[Target] = Collection(Target)
@@ -37,6 +36,9 @@ class Registry(ABC):
     def render(self) -> None:
         for target in self._targets:
             target.render()
+
+    def add_listener(self, on_event) -> None:
+        self._watcher.add_listener(on_event)
 
     def watch(self) -> None:
         self._watcher.start()
