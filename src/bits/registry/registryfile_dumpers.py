@@ -22,7 +22,10 @@ class RegistryFileMdDumper(RegistryFileDumper):
             raise ValueError(f"Unsupported file format: {path.suffix}")
 
         frontmatter = yaml.dump(
-            {"targets": [target.dict() for target in data.targets]},
+            {
+                "targets": [target.dict() for target in data.targets],
+                "constants": [constant.dict() for constant in data.constants],
+            },
             default_flow_style=False,
         ).strip()
         bits_content = "\n---\n".join(self._dump_bit(bit) for bit in data.bits)

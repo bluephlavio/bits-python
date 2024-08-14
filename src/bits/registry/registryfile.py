@@ -148,8 +148,11 @@ class RegistryFile(Registry):
     def dump(self, path: Path):
         dumper = RegistryFileDumperFactory.get(path)
         bits: List[BitModel] = [bit.to_model() for bit in self.bits]
+        constants: List[ConstantModel] = [
+            constant.to_model() for constant in self.constants
+        ]
         targets: List[TargetModel] = [target.to_model() for target in self.targets]
         registry_data_model: RegistryDataModel = RegistryDataModel(
-            bits=bits, targets=targets
+            bits=bits, constants=constants, targets=targets
         )
         dumper.dump(registry_data_model, path)

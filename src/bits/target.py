@@ -23,6 +23,7 @@ class Target(Element):
         super().__init__(name=name, tags=tags)
 
         self.template: Template = template
+        self.template_path = Path(template.filename).resolve()
 
         self.context: dict = context
 
@@ -32,6 +33,21 @@ class Target(Element):
             self.dest: Path = dest
         else:
             raise ValueError("Target destination must be a pdf file")
+
+    def __str__(self) -> str:
+        return f"Target: {self.name or self.id}"
+
+    def __repr__(self) -> str:
+        return f"Target(name={self.name}, tags={self.tags}, dest={self.dest}, template={self.template.filename}, context={self.context})"
+
+    def to_model(self) -> TargetModel:
+        return TargetModel(
+            name=self.name,
+            tags=self.tags,
+            template=str(self.template_path),
+            context=self.context,
+            dest=str(self.dest),
+        )
 
     def render(self) -> None:
         def run():
@@ -56,12 +72,3 @@ class Target(Element):
         process: Process = Process(target=run)
         process.start()
         process.join()
-
-    def to_model(self) -> TargetModel:
-        return TargetModel(
-            name=self.name,
-            tags=self.tags,
-            template=self.template.filename,
-            context=self.context,
-            dest=self.dest,
-        )
