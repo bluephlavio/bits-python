@@ -4,8 +4,9 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 
 from ..bit import Bit
-from ..collections import Collection
+from ..constant import Constant
 from ..target import Target
+from ..collections import Collection
 from ..watcher import Watcher
 
 
@@ -19,11 +20,16 @@ class Registry(ABC):
         self._watcher: Watcher = Watcher(self._path)
 
         self._bits: Collection[Bit] = Collection(Bit)
+        self._constants: Collection[Constant] = Collection(Constant)
         self._targets: Collection[Target] = Collection(Target)
 
     @property
     def bits(self) -> Collection[Bit]:
         return self._bits
+
+    @property
+    def constants(self) -> Collection[Constant]:
+        return self._constants
 
     @property
     def targets(self) -> Collection[Target]:

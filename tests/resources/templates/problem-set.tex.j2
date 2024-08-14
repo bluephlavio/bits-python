@@ -30,10 +30,29 @@
 
 \maketitle
 
+\section*{Quesiti}
+
 \begin{enumerate}
 \BLOCK{ for block in blocks }
 \item \BLOCK{ if metadata }\textbf{{\color{red} id:} \VAR{ block.bit.id }\\ {\color{red} name:} \VAR{ block.bit.name }\\ {\color{red} tags:} \VAR{ block.bit.tags|join(", ")|replace("#", "\#") } } \\ \vspace{5pt} \\ \BLOCK{ endif }\VAR{ block.render() }\vspace{15pt}
 \BLOCK{ endfor }
 \end{enumerate}
+
+\BLOCK{ if constants }%
+    \section*{Costanti}
+    \begin{table}[H]
+        \centering
+        \small
+        \begin{tabularx}{\textwidth}{Xcl}
+            \toprule
+            \textbf{Nome} & \textbf{Simbolo} & \textbf{Valore}\\
+            \midrule
+            \BLOCK{ for constant in constants }%
+                \VAR{ constant.name } & \VAR{ constant.symbol } & \VAR{ constant.value }\\
+            \BLOCK{ endfor }%
+            \bottomrule
+        \end{tabularx}
+    \end{table}
+\BLOCK{ endif }%
 
 \end{document}

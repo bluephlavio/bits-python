@@ -3,7 +3,7 @@ import re
 from typing import List
 from pathlib import Path
 
-from ..models import RegistryDataModel, BitModel, TargetModel
+from ..models import RegistryDataModel, BitModel, ConstantModel, TargetModel
 from ..yaml_loader import load_yaml
 
 
@@ -39,14 +39,21 @@ class RegistryFileMdParser(RegistryFileParser):
             raise ValueError("Invalid frontmatter format")
 
         frontmatter_content = load_yaml(parts[1])
-        targets: List[TargetModel] = [
-            TargetModel(**target) for target in frontmatter_content["targets"]
-        ]
+        targets: List[TargetModel] = (
+            [TargetModel(**target) for target in frontmatter_content["targets"]]
+            if "targets" in frontmatter_content
+            else []
+        )
+        constants: List[ConstantModel] = (
+            [ConstantModel(**constant) for constant in frontmatter_content["constants"]]
+            if "constants" in frontmatter_content
+            else []
+        )
 
         bits_src = filter(lambda x: x.strip(), parts[2:])
         bits: List[BitModel] = [self._parse_bit(bit_src) for bit_src in bits_src]
 
-        return RegistryDataModel(bits=bits, targets=targets)
+        return RegistryDataModel(bits=bits, constants=constants, targets=targets)
 
 
 class RegistryFileYamlParser(RegistryFileParser):
@@ -59,13 +66,18 @@ class RegistryFileYamlParser(RegistryFileParser):
         bits: List[BitModel] = (
             [BitModel(**bit) for bit in data["bits"]] if "bits" in data else []
         )
+        constants: List[ConstantModel] = (
+            [ConstantModel(**constant) for constant in data["constants"]]
+            if "constants" in data
+            else []
+        )
         targets: List[TargetModel] = (
             [TargetModel(**target) for target in data["targets"]]
             if "targets" in data
             else []
         )
 
-        return RegistryDataModel(bits=bits, targets=targets)
+        return RegistryDataModel(bits=bits, constants=constants, targets=targets)
 
 
 class RegistryFileParserFactory:

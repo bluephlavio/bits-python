@@ -1,0 +1,9 @@
+constants:
+- name: Costante di gravitazione universale
+  tags: [gravitazione]
+  symbol: $G$
+  value: $\SI{6.67e-11}{\cubic\meter\per\kilogram\per\squared\second}$
+- name: Velocità della luce nel vuoto
+  tags: [ottica]
+  symbol: $c$
+  value: $\SI{3.00e8}{\meter\per\second}$

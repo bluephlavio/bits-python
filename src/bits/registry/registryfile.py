@@ -13,8 +13,16 @@ from ..collections import Collection
 from ..config import config
 from ..env import EnvironmentFactory
 from ..helpers import normalize_path
-from ..models import BitModel, BlocksModel, TargetModel, RegistryDataModel
+from ..models import (
+    BitModel,
+    ConstantModel,
+    TargetModel,
+    BlocksModel,
+    ConstantsModel,
+    RegistryDataModel,
+)
 from ..target import Target
+from ..constant import Constant
 from ..bit import Bit
 
 
@@ -31,6 +39,7 @@ class RegistryFile(Registry):
         registryfile_model: RegistryDataModel = self._parser.parse(self._path)
 
         self._bits.clear()
+        self._constants.clear()
         self._targets.clear()
 
         for bit_model in registryfile_model.bits:
@@ -41,6 +50,10 @@ class RegistryFile(Registry):
 
         for bit in self._bits:
             bit.defaults = self._resolve_context(bit.defaults)
+
+        for constant_model in registryfile_model.constants:
+            constant: Constant = Constant.from_model(constant_model)
+            self._constants.append(constant)
 
         if not as_dep:
             for target_model in registryfile_model.targets:
@@ -75,7 +88,14 @@ class RegistryFile(Registry):
             context["blocks"] = blocks
 
         if "constants" in data:
-            context["constants"] = data["constants"]
+            constants: List[Constant] = [
+                constant
+                for constants_data in data["constants"]
+                for constant in self._resolve_constants(
+                    ConstantsModel(**constants_data)
+                )
+            ]
+            context["constants"] = constants
 
         return context
 
@@ -94,6 +114,15 @@ class RegistryFile(Registry):
             Block(bit, context=context, metadata=metadata) for bit in bits
         ]
         return blocks
+
+    def _resolve_constants(self, data: ConstantsModel) -> List[Constant]:
+        registry: Registry = (
+            self._resolve_registry(data.registry) if data.registry else self
+        )
+
+        constants: List[Constant] = registry.constants.query(**data.query.dict())
+
+        return constants
 
     def _resolve_target(self, data: TargetModel) -> Target:
         name: str | None = data.name
