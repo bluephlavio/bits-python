@@ -17,8 +17,17 @@ def test_cli_help():
     )
 
 
-def test_cli_build(bitsfiles):
+def test_cli_build(bitsfiles, capfd):
     for bitsfile in bitsfiles:
+
+        print(f"Testing file: {bitsfile}")
+        with open(bitsfile, "r", encoding="utf-8") as file:
+            print(file.read())
+
+        # Capture the output
+        captured = capfd.readouterr()
+        print(captured.out)
+
         result = subprocess.run(
             ["bits", "build", str(bitsfile)], capture_output=True, check=True
         )
