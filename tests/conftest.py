@@ -1,4 +1,5 @@
 from pathlib import Path
+import itertools
 
 import pytest
 
@@ -11,4 +12,9 @@ def resources():
 
 @pytest.fixture(scope="session")
 def bitsfiles(resources):  # pylint: disable=redefined-outer-name
-    return [path.resolve() for path in resources.glob("*.md")]
+    patterns = ["*.md", "*.yaml", "*.yml"]
+    return list(
+        itertools.chain.from_iterable(
+            (file.resolve() for file in resources.glob(pattern)) for pattern in patterns
+        )
+    )

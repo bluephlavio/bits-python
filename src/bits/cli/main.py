@@ -1,10 +1,11 @@
 import time
 from pathlib import Path
+from typing import Optional
 
 import typer
 
 from .. import __version__
-from ..registry import Registry, RegistryFactory
+from ..registry import Registry, RegistryFile, RegistryFactory
 
 app = typer.Typer()
 
@@ -28,6 +29,12 @@ def render(path: Path, watch: bool = typer.Option(False)):
     registry.render()
 
     if watch:
+
+        def reload_and_rerender(event):  # pylint: disable=unused-argument
+            registry.load(as_dep=False)
+            registry.render()
+
+        registry.add_listener(reload_and_rerender)
         registry.watch()
 
         try:
@@ -35,3 +42,18 @@ def render(path: Path, watch: bool = typer.Option(False)):
                 time.sleep(1)
         except KeyboardInterrupt:
             registry.stop()
+
+
+@app.command(name="convert")
+def convert(
+    src: Path,
+    out: Optional[Path] = typer.Option(None),
+    fmt: Optional[str] = typer.Option(None),
+):
+    if out is None:
+        if fmt is None:
+            raise typer.BadParameter("Either --out or --fmt must be provided")
+        out = src.with_suffix(f".{fmt}")
+
+    registryfile: RegistryFile = RegistryFactory.get(src)
+    registryfile.dump(out)

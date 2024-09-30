@@ -1,90 +1,63 @@
 from __future__ import annotations
-
-import re
-from itertools import chain
 from pathlib import Path
 from typing import List
 
-import yaml
 from jinja2 import Template
 
-from ..bit import Bit
+from .registry import Registry
+from .registry_factory import RegistryFactory
+from .registryfile_parsers import RegistryFileParserFactory
+from .registryfile_dumpers import RegistryFileDumperFactory
 from ..block import Block
 from ..collections import Collection
 from ..config import config
 from ..env import EnvironmentFactory
 from ..helpers import normalize_path
-from ..models import BlocksModel, TargetModel
+from ..models import (
+    BitModel,
+    ConstantModel,
+    TargetModel,
+    BlocksModel,
+    ConstantsModel,
+    RegistryDataModel,
+)
 from ..target import Target
-from .registry import Registry
-from .registry_factory import RegistryFactory
-
-var_pattern = re.compile(r"\$\{([^}]+)\}")
-
-yaml.add_implicit_resolver("!var", var_pattern)
-
-
-def interpolated_var_constructor(loader, node):
-    value = loader.construct_scalar(node)
-
-    def replace_var(match):
-        variable_name = match.group(1)
-        if config.has_option("variables", variable_name):
-            return config.get("variables", variable_name)
-        return match.group(0)
-
-    return var_pattern.sub(replace_var, value)
-
-
-yaml.add_constructor("!var", interpolated_var_constructor)
+from ..constant import Constant
+from ..bit import Bit
 
 
 class RegistryFile(Registry):
+    # pylint: disable=unused-argument
     def __init__(self, path: Path, as_dep: bool = False):
         super().__init__(path)
-
         if not self._path.is_file():
             raise IsADirectoryError
-
-        if not self._path.suffix == ".md":
-            raise ValueError
-
+        self._parser = RegistryFileParserFactory.get(self._path)
         self.load(as_dep=as_dep)
 
-    def load(self, as_dep: bool = False) -> None:
-        with open(self._path, "r", encoding="utf-8") as file:
-            content = file.read()
-
-        delimiter = "---"
-        parts = content.split(delimiter)
-        if len(parts) < 3:
-            raise ValueError("Invalid frontmatter format")
-
-        frontmatter_content = parts[1]
-        post_content = delimiter.join(parts[2:])
-
-        post_metadata = yaml.load(frontmatter_content, Loader=yaml.FullLoader)
+    def load(self, as_dep: bool = False):
+        registryfile_model: RegistryDataModel = self._parser.parse(self._path)
 
         self._bits.clear()
+        self._constants.clear()
+        self._targets.clear()
 
-        bits_src: List[str] = post_content.split("---")
+        for bit_model in registryfile_model.bits:
+            src: str = bit_model.src
+            meta: dict = bit_model.dict(exclude={"src"})
+            bit: Bit = Bit(src, **meta)
+            self._bits.append(bit)
 
-        for bit_src in bits_src:
-            try:
-                bit: Bit = self._parse_bit(bit_src)
-                self._bits.append(bit)
-            except AttributeError:
-                continue
+        for bit in self._bits:
+            bit.defaults = self._resolve_context(bit.defaults)
+
+        for constant_model in registryfile_model.constants:
+            constant: Constant = Constant.from_model(constant_model)
+            self._constants.append(constant)
 
         if not as_dep:
-            self._targets.clear()
-
-            targets_data: List[TargetModel] = map(
-                lambda data: TargetModel(**data), post_metadata["targets"]
-            )
-
-            for target_data in targets_data:
-                target: Target = self._parse_target(target_data)
+            for target_model in registryfile_model.targets:
+                target: Target = self._resolve_target(target_model)
                 self._targets.append(target)
 
     def _resolve_path(self, path: str) -> Path:
@@ -101,42 +74,39 @@ class RegistryFile(Registry):
         template: Template = env.get_template(template_path.name)
         return template
 
-    def _parse_bit(self, src: str) -> Bit:
-        src_match: re.Match = re.match(
-            r"^\s*(?P<header>[\S\s]*)\s*```latex\s*(?P<content>[\S\s]*)\s*```\s*$",
-            src,
-        )
+    def _resolve_context(self, data: dict) -> dict:
+        context: dict = {
+            k: v for k, v in data.items() if k not in ["blocks", "constants"]
+        }
 
-        header: str = src_match.group("header").strip().replace("::", ":")
-        content: str = src_match.group("content").strip()
+        if "blocks" in data:
+            blocks: List[Block] = [
+                block
+                for blocks_data in data["blocks"]
+                for block in self._resolve_blocks(BlocksModel(**blocks_data))
+            ]
+            context["blocks"] = blocks
 
-        meta: dict = yaml.load(header, Loader=yaml.Loader)
+        if "constants" in data:
+            constants: List[Constant] = [
+                constant
+                for constants_data in data["constants"]
+                for constant in self._resolve_constants(
+                    ConstantsModel(**constants_data)
+                )
+            ]
+            context["constants"] = constants
 
-        bit: Bit = Bit(content, **meta)
-        return bit
+        return context
 
-    def _parse_blocks(self, data: BlocksModel) -> List[Block]:
+    def _resolve_blocks(self, data: BlocksModel) -> List[Block]:
         registry: Registry = (
             self._resolve_registry(data.registry) if data.registry else self
         )
 
         bits: Collection[Bit] = registry.bits.query(**data.query.dict())
 
-        context: dict = {k: v for k, v in data.context.items() if k not in ["blocks"]}
-
-        if "blocks" in data.context:
-            blocks: List[Block] = list(
-                chain(
-                    *map(
-                        self._parse_blocks,
-                        map(
-                            lambda blocks: BlocksModel(**blocks),
-                            data.context["blocks"],
-                        ),
-                    )
-                ),
-            )
-            context["blocks"] = blocks
+        context: dict = self._resolve_context(data.context)
 
         metadata: dict = data.metadata
 
@@ -145,7 +115,16 @@ class RegistryFile(Registry):
         ]
         return blocks
 
-    def _parse_target(self, data: TargetModel) -> Target:
+    def _resolve_constants(self, data: ConstantsModel) -> List[Constant]:
+        registry: Registry = (
+            self._resolve_registry(data.registry) if data.registry else self
+        )
+
+        constants: List[Constant] = registry.constants.query(**data.query.dict())
+
+        return constants
+
+    def _resolve_target(self, data: TargetModel) -> Target:
         name: str | None = data.name
         tags: List[str] = data.tags or []
 
@@ -153,29 +132,27 @@ class RegistryFile(Registry):
             data.template or config.get("DEFAULT", "template")
         )
 
-        context: dict = {
-            k: v for k, v in data.context.items() if k not in ["blocks", "constants"]
-        }
-
-        if "blocks" in data.context:
-            blocks: List[Block] = list(
-                chain(
-                    *map(
-                        self._parse_blocks,
-                        map(
-                            lambda blocks: BlocksModel(**blocks),
-                            data.context["blocks"],
-                        ),
-                    )
-                ),
-            )
-            context["blocks"] = blocks
-
-        if "constants" in data.context:
-            context["constants"] = data.context["constants"]
+        context: dict = self._resolve_context(data.context)
 
         dest: Path = self._resolve_path(data.dest or ".")
         dest = dest / f"{self._path.stem}-{name}.pdf" if dest.suffix == "" else dest
 
         target: Target = Target(template, context, dest, name=name, tags=tags)
         return target
+
+    def to_registry_data_model(self) -> RegistryDataModel:
+        bits = [bit.to_bit_model() for bit in self.bits]
+        targets = [target.to_target_model() for target in self.targets]
+        return RegistryDataModel(bits=bits, targets=targets)
+
+    def dump(self, path: Path):
+        dumper = RegistryFileDumperFactory.get(path)
+        bits: List[BitModel] = [bit.to_model() for bit in self.bits]
+        constants: List[ConstantModel] = [
+            constant.to_model() for constant in self.constants
+        ]
+        targets: List[TargetModel] = [target.to_model() for target in self.targets]
+        registry_data_model: RegistryDataModel = RegistryDataModel(
+            bits=bits, constants=constants, targets=targets
+        )
+        dumper.dump(registry_data_model, path)

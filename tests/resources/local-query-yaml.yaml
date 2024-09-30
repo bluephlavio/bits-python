@@ -1,0 +1,20 @@
+targets:
+- name: target
+  template: ${templates}/problem-set.tex.j2
+  dest: ${artifacts}
+  context:
+    metadata: true
+    fontsize: 13pt
+    title: Title
+    subtitle: Subtitle
+    blocks:
+    - query:
+        name: Mass of the Sun
+bits:
+- name: Mass of the Sun
+  tags: [astronomy, gravitation]
+  author: Flavio Grandin
+  defaults:
+    formula: "M=\\frac{Fr^2}{Gm}"
+  src: |
+    Calculate the mass of the Sun with the formula $\VAR{ formula }$!!!

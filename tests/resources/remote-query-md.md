@@ -2,7 +2,7 @@
 targets:
   - name: target
     template: ./templates/test.tex.j2
-    dest: ../artifacts/
+    dest: ${artifacts}
     context:
       title: Title
       subtitle: Subtitle
@@ -10,9 +10,14 @@ targets:
       type: null
       date: Date
       blocks:
-        - registry: ./bitsfile1.md
+        - registry: ./collection.md
           query:
             name: Mass of the Sun
           metadata:
-            pts: [25, 25, 25, 25]
+            pts: [4, 4, 5, 3]
+        - registry: ./collection.yml
+          query:
+            tags: [equazione]
+          metadata:
+            pts: [4, 4, 5, 3]
 ---

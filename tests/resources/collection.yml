@@ -1,0 +1,21 @@
+targets: []
+bits:
+- name: Equazione
+  tags: [equazione]
+  num: 1
+  src: $x+1=0$
+- name: Equazione
+  tags: [equazione]
+  num: 2
+  src: $x^2+1=0$
+- name: Equazione
+  tags: [equazione]
+  num: 3
+  src: $x^3+1=0$
+- name: Mass of the Sun
+  tags: [astronomy, gravitation]
+  author: Flavio Grandin
+  defaults: { formula: "M=\\frac{Fr^2}{Gm}" }
+  src: '''
+Calculate the mass of the Sun with the formula $\VAR{ formula }$!!!
+'''

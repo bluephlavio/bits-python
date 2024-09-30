@@ -16,7 +16,11 @@ class RegistryFolder(Registry):
         self.load(as_dep=as_dep)
 
     def load(self, as_dep: bool = False) -> None:
-        for path in self._path.rglob("**/*.md"):
-            registry: Registry = RegistryFactory.get(path, as_dep=as_dep)
-            self._bits.extend(registry.bits)
-            self._targets.extend(registry.targets)
+        self._bits.clear()
+        self._targets.clear()
+
+        for path in self._path.rglob("**/*"):
+            if path.suffix in {".md", ".yaml"}:
+                registry: Registry = RegistryFactory.get(path, as_dep=as_dep)
+                self._bits.extend(registry.bits)
+                self._targets.extend(registry.targets)

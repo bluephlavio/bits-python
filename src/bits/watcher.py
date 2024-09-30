@@ -7,13 +7,15 @@ from watchdog.observers import Observer
 
 class Watcher(PatternMatchingEventHandler):
     def __init__(self, path: Path):
-        super().__init__(patterns=[path.name if path.suffix == ".md" else "**/*.md"])
+        super().__init__(
+            patterns=["*.md", "*.yaml", "*.yml", "**/*.md", "**/*.yaml", "**/*.yml"]
+        )
 
         if not path.exists():
             raise FileNotFoundError(f"Path {path} does not exist")
 
-        if path.is_file() and path.suffix != ".md":
-            raise ValueError(f"Path {path} is not a markdown file")
+        if path.is_file() and path.suffix not in [".md", ".yaml", ".yml"]:
+            raise ValueError(f"Path {path} is not a markdown or yaml file")
 
         self._path: Path = path
         self._dir: Path = self._path if self._path.is_dir() else self._path.parent
@@ -21,7 +23,7 @@ class Watcher(PatternMatchingEventHandler):
         self._observer: Observer = Observer()
         self._observer.schedule(self, self._dir, recursive=True)
 
-        self._listeners: List[Callable[[FileSystemEvent]], None] = []
+        self._listeners: List[Callable[[FileSystemEvent], None]] = []
 
     def add_listener(self, on_event: Callable[[FileSystemEvent], None]) -> None:
         if on_event not in self._listeners:
@@ -34,6 +36,9 @@ class Watcher(PatternMatchingEventHandler):
             pass
 
     def on_any_event(self, event: FileSystemEvent):
+        if event.is_directory:
+            return
+
         listener: Callable[[FileSystemEvent], None]
         for listener in self._listeners:
             listener(event)

@@ -2,6 +2,7 @@ from typing import List
 
 from jinja2 import Template
 
+from .models import BitModel
 from .collections import Element
 from .env import EnvironmentFactory
 
@@ -15,7 +16,6 @@ class Bit(Element):
         author: str | None = None,
         kind: str | None = None,
         level: int | None = None,
-        constants: List[str] | None = None,
         defaults: dict | None = None,
         **kwargs,
     ):
@@ -25,7 +25,6 @@ class Bit(Element):
 
         self.src: str = src
 
-        self.constants: List[str] = constants or []
         self.defaults: dict = defaults or {}
 
         self.template: Template = EnvironmentFactory.get().from_string(self.src)
@@ -46,3 +45,14 @@ class Bit(Element):
         context: dict = {**self.defaults}
         context.update(**kwargs)
         return self.template.render(context)
+
+    def to_model(self) -> BitModel:
+        return BitModel(
+            name=self.name,
+            tags=self.tags,
+            author=self.author,
+            kind=self.kind,
+            level=self.level,
+            defaults=self.defaults,
+            src=self.src,
+        )

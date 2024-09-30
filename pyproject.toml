@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bits"
-version = "0.6.0"
+version = "0.8.0"
 description = "A tool to maintain a collection of latex bits and insert them into a latex template."
 authors = ["Flavio Grandin <flavio.grandin@gmail.com>"]
 packages = [{ include = "bits", from = "src" }]
@@ -12,7 +12,6 @@ Jinja2 = "^3.1.1"
 watchdog = "^2.1.8"
 configparser = "^5.2.0"
 pydantic = "^1.9.2"
-python-frontmatter = "^1.0.0"
 PyYAML = "^6.0"
 
 [tool.poetry.group.dev.dependencies]
@@ -65,7 +64,7 @@ clean = { shell = "rm -rf .coverage .pytest_cache tests/artifacts/* dist && find
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.6.0"
+version = "0.8.0"
 tag_format = "v$version"
 bump_message = "build: version $current_version → $new_version"
 version_files = [
