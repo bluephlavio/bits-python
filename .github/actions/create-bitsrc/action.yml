@@ -4,6 +4,7 @@ runs:
   using: composite
   steps:
     - name: Set execute permissions for create-bitsrc.sh
+      shell: bash
       run: chmod +x .github/actions/create-bitsrc/create-bitsrc.sh
 
     - name: Create .bitsrc file
