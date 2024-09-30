@@ -1,0 +1,8 @@
+name: Create .bitsrc file
+description: Creates a .bitsrc file with environment-specific variables
+runs:
+  using: composite
+  steps:
+    - name: Create .bitsrc file
+      shell: bash
+      run: ./.github/actions/create-bitsrc/create-bitsrc.sh

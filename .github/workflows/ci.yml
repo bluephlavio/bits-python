@@ -19,6 +19,9 @@ jobs:
     - name: Set up Poetry
       uses: ./.github/actions/setup-poetry
 
+    - name: Create .bitsrc file
+      uses: ./.github/actions/create-bitsrc
+
     - name: Build the package
       uses: ./.github/actions/build-package
 
