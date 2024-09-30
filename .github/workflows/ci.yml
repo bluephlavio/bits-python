@@ -22,6 +22,14 @@ jobs:
     - name: Create .bitsrc file
       uses: ./.github/actions/create-bitsrc
 
+    - name: List templates directory contents
+      shell: bash
+      run: ls -R tests/resources/templates
+
+    - name: List templates directory contents
+      shell: bash
+      run: ls -R ${GITHUB_WORKSPACE}/tests/resources/templates
+
     - name: Build the package
       uses: ./.github/actions/build-package
 
