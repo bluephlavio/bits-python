@@ -2,7 +2,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import List
 
-from jinja2 import Template
+import jinja2
 
 from .registry import Registry
 from .registry_factory import RegistryFactory
@@ -68,11 +68,19 @@ class RegistryFile(Registry):
         registry: Registry = RegistryFactory.get(registry_path, as_dep=True)
         return registry
 
-    def _resolve_template(self, path: str) -> Template:
+    def _resolve_template(self, path: str) -> jinja2.Template:
         template_path: Path = self._resolve_path(path)
-        env = EnvironmentFactory.get(templates_folder=template_path.parent)
-        template: Template = env.get_template(template_path.name)
-        return template
+        print(template_path)
+        print(template_path.parent)
+        try:
+            env = EnvironmentFactory.get(templates_folder=template_path.parent)
+            print(env)
+            template: jinja2.Template = env.get_template(template_path.name)
+            print(template)
+            return template
+        except jinja2.exceptions.TemplateNotFound:
+            print(f"Template not found: {template_path}")
+            return None
 
     def _resolve_context(self, data: dict) -> dict:
         context: dict = {
@@ -128,7 +136,7 @@ class RegistryFile(Registry):
         name: str | None = data.name
         tags: List[str] = data.tags or []
 
-        template: Template = self._resolve_template(
+        template: jinja2.Template = self._resolve_template(
             data.template or config.get("DEFAULT", "template")
         )
 
