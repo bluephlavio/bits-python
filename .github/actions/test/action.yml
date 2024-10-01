@@ -11,5 +11,5 @@ runs:
   - name: Run pytest
     shell: bash
     run: |
-      cd ${{ github.workspace }}
-      pytest
+      echo "GITHUB_WORKSPACE: ${{ github.workspace }}"
+      cd ${{ github.workspace }} && pwd && pytest
