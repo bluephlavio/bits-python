@@ -6,6 +6,9 @@ WORKSPACE_DIR=${GITHUB_WORKSPACE}
 # Debug: Print the value of GITHUB_WORKSPACE
 echo "GITHUB_WORKSPACE: ${GITHUB_WORKSPACE}"
 
+# Debug: Print the current working directory
+echo "Current working directory: $(pwd)"
+
 # Create the .bitsrc file with environment-specific variables
 cat <<EOL > .bitsrc
 [variables]

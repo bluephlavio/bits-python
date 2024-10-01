@@ -11,4 +11,5 @@ runs:
   - name: Run pytest
     shell: bash
     run: |
+      cd ${{ github.workspace }}
       pytest
