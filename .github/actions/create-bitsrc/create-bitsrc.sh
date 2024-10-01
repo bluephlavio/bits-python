@@ -18,3 +18,8 @@ EOL
 
 # Debug: Print the contents of the .bitsrc file
 cat .bitsrc
+
+ls -la
+ls -la tests
+ls -la tests/resources
+ls -la tests/resources/templates
