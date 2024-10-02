@@ -3,22 +3,12 @@ name: Lint
 runs:
   using: composite
   steps:
-  - name: Install the tools
+  - name: Format the code
     shell: bash
     run: |
-      pip install black isort pylint pytest
+      poetry run poe format
 
-  - name: Run isort
+  - name: Lint the code
     shell: bash
     run: |
-      isort --profile=black --settings-path=pyproject.toml src tests
-
-  - name: Run black
-    shell: bash
-    run: |
-      black --config=pyproject.toml src tests
-
-  - name: Run pylint
-    shell: bash
-    run: |
-      pylint --rcfile=pyproject.toml src tests
+      poetry run poe lint

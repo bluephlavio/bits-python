@@ -29,11 +29,17 @@ jobs:
     - name: Check out repository
       uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: ./.github/actions/setup-python
-  
-    - name: Install the package
-      uses: ./.github/actions/install-package
+    - name: Install poetry
+      run: |
+        pip install poetry
+
+    - name: Install dependencies
+      run: |
+        poetry install
+
+    - name: Install Poe the Poet
+      run: |
+        poetry add --dev poethepoet
   
     - name: Lint
       uses: ./.github/actions/lint
