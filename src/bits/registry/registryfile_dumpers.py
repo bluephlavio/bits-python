@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
+
 import yaml
 
-from ..models import RegistryDataModel, BitModel
+from ..models import BitModel, RegistryDataModel
 
 
 class RegistryFileDumper(ABC):
@@ -52,7 +53,6 @@ class RegistryFileDumperFactory:
     def get(path: Path) -> RegistryFileDumper:
         if path.suffix in [".yml", ".yaml"]:
             return RegistryFileYamlDumper()
-        elif path.suffix == ".md":
+        if path.suffix == ".md":
             return RegistryFileMdDumper()
-        else:
-            raise ValueError(f"Unsupported file format: {path.suffix}")
+        raise ValueError(f"Unsupported file format: {path.suffix}")

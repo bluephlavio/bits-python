@@ -7,8 +7,8 @@ from typing import List
 from jinja2 import Template
 
 from .collections import Element
-from .models import TargetModel
 from .helpers import tmpdir, write
+from .models import TargetModel
 
 
 class Target(Element):
@@ -38,7 +38,17 @@ class Target(Element):
         return f"Target: {self.name or self.id}"
 
     def __repr__(self) -> str:
-        return f"Target(name={self.name}, tags={self.tags}, dest={self.dest}, template={self.template.filename}, context={self.context})"
+        return "".join(
+            [
+                "Target(",
+                f"name={self.name}, ",
+                f"tags={self.tags}, ",
+                f"dest={self.dest}, ",
+                f"template={self.template.filename}, ",
+                f"context={self.context}",
+                ")",
+            ]
+        )
 
     def to_model(self) -> TargetModel:
         return TargetModel(

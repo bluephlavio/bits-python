@@ -4,9 +4,9 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 
 from ..bit import Bit
+from ..collections import Collection
 from ..constant import Constant
 from ..target import Target
-from ..collections import Collection
 from ..watcher import Watcher
 
 

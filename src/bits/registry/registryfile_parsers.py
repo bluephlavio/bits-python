@@ -1,9 +1,9 @@
-from abc import ABC, abstractmethod
 import re
-from typing import List
+from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import List
 
-from ..models import RegistryDataModel, BitModel, ConstantModel, TargetModel
+from ..models import BitModel, ConstantModel, RegistryDataModel, TargetModel
 from ..yaml_loader import load_yaml
 
 
@@ -85,7 +85,6 @@ class RegistryFileParserFactory:
     def get(path: Path) -> RegistryFileParser:
         if path.suffix in [".yml", ".yaml"]:
             return RegistryFileYamlParser()
-        elif path.suffix == ".md":
+        if path.suffix == ".md":
             return RegistryFileMdParser()
-        else:
-            raise ValueError(f"Unsupported file format: {path.suffix}")
+        raise ValueError(f"Unsupported file format: {path.suffix}")

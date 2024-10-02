@@ -2,9 +2,9 @@ from typing import List
 
 from jinja2 import Template
 
-from .models import BitModel
 from .collections import Element
 from .env import EnvironmentFactory
+from .models import BitModel
 
 
 class Bit(Element):

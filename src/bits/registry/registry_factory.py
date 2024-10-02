@@ -21,3 +21,5 @@ class RegistryFactory:  # pylint: disable=too-few-public-methods
             from .registryfolder import RegistryFolder
 
             return RegistryFolder(normalized_path, **kwargs)
+
+        return None

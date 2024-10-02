@@ -5,7 +5,7 @@ from typing import Optional
 import typer
 
 from .. import __version__
-from ..registry import Registry, RegistryFile, RegistryFactory
+from ..registry import Registry, RegistryFactory, RegistryFile
 
 app = typer.Typer()
 

@@ -35,7 +35,8 @@ disable = [
        "missing-module-docstring",
        "missing-class-docstring",
        "missing-function-docstring",
-       "cyclic-import"
+       "cyclic-import",
+       "too-few-public-methods",
 ]
 
 [tool.black]

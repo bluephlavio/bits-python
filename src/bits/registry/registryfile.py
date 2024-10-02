@@ -1,29 +1,30 @@
 from __future__ import annotations
+
 from pathlib import Path
 from typing import List
 
 import jinja2
 
-from .registry import Registry
-from .registry_factory import RegistryFactory
-from .registryfile_parsers import RegistryFileParserFactory
-from .registryfile_dumpers import RegistryFileDumperFactory
+from ..bit import Bit
 from ..block import Block
 from ..collections import Collection
 from ..config import config
+from ..constant import Constant
 from ..env import EnvironmentFactory
 from ..helpers import normalize_path
 from ..models import (
     BitModel,
-    ConstantModel,
-    TargetModel,
     BlocksModel,
+    ConstantModel,
     ConstantsModel,
     RegistryDataModel,
+    TargetModel,
 )
 from ..target import Target
-from ..constant import Constant
-from ..bit import Bit
+from .registry import Registry
+from .registry_factory import RegistryFactory
+from .registryfile_dumpers import RegistryFileDumperFactory
+from .registryfile_parsers import RegistryFileParserFactory
 
 
 class RegistryFile(Registry):
@@ -70,17 +71,9 @@ class RegistryFile(Registry):
 
     def _resolve_template(self, path: str) -> jinja2.Template:
         template_path: Path = self._resolve_path(path)
-        print(template_path)
-        print(template_path.parent)
-        try:
-            env = EnvironmentFactory.get(templates_folder=template_path.parent)
-            print(env)
-            template: jinja2.Template = env.get_template(template_path.name)
-            print(template)
-            return template
-        except jinja2.exceptions.TemplateNotFound:
-            print(f"Template not found: {template_path}")
-            return None
+        env = EnvironmentFactory.get(templates_folder=template_path.parent)
+        template: jinja2.Template = env.get_template(template_path.name)
+        return template
 
     def _resolve_context(self, data: dict) -> dict:
         context: dict = {
