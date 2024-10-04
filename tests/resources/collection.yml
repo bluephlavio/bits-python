@@ -11,7 +11,7 @@ bits:
 - name: Equazione
   tags: [equazione]
   num: 3
-  src: $x^3+1=0$
+  src: $x^3+2=0$
 - name: Mass of the Sun
   tags: [astronomy, gravitation]
   author: Flavio Grandin

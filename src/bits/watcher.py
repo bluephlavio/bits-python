@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Callable, List
+from threading import Timer
 
 from watchdog.events import FileSystemEvent, PatternMatchingEventHandler
 from watchdog.observers import Observer
@@ -24,6 +25,7 @@ class Watcher(PatternMatchingEventHandler):
         self._observer.schedule(self, self._dir, recursive=True)
 
         self._listeners: List[Callable[[FileSystemEvent], None]] = []
+        self._debounce_timer = None
 
     def add_listener(self, on_event: Callable[[FileSystemEvent], None]) -> None:
         if on_event not in self._listeners:
@@ -38,7 +40,12 @@ class Watcher(PatternMatchingEventHandler):
     def on_any_event(self, event: FileSystemEvent):
         if event.is_directory:
             return
+        if self._debounce_timer:
+            self._debounce_timer.cancel()
+        self._debounce_timer = Timer(1.0, self._notify_listeners, [event])
+        self._debounce_timer.start()
 
+    def _notify_listeners(self, event: FileSystemEvent):
         listener: Callable[[FileSystemEvent], None]
         for listener in self._listeners:
             listener(event)

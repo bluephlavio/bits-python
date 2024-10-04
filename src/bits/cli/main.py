@@ -31,6 +31,12 @@ def render(path: Path, watch: bool = typer.Option(False)):
     if watch:
 
         def reload_and_rerender(event):  # pylint: disable=unused-argument
+            if not (
+                event.src_path.endswith(".yml")
+                or event.src_path.endswith(".yaml")
+                or event.src_path.endswith(".md")
+            ):
+                return
             registry.load(as_dep=False)
             registry.render()
 
