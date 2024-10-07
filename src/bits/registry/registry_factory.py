@@ -1,4 +1,4 @@
-from functools import lru_cache
+# from functools import lru_cache
 from pathlib import Path
 
 from ..helpers import normalize_path
@@ -6,7 +6,7 @@ from ..helpers import normalize_path
 
 class RegistryFactory:  # pylint: disable=too-few-public-methods
     @staticmethod
-    @lru_cache(maxsize=None)
+    # @lru_cache(maxsize=None)
     def get(path: Path | str, **kwargs):
         normalized_path: Path = normalize_path(path)
 

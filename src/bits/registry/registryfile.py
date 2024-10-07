@@ -37,29 +37,30 @@ class RegistryFile(Registry):
         self.load(as_dep=as_dep)
 
     def load(self, as_dep: bool = False):
-        registryfile_model: RegistryDataModel = self._parser.parse(self._path)
+        with self._load_lock:
+            registryfile_model: RegistryDataModel = self._parser.parse(self._path)
 
-        self._bits.clear()
-        self._constants.clear()
-        self._targets.clear()
+            self._bits.clear()
+            self._constants.clear()
+            self._targets.clear()
 
-        for bit_model in registryfile_model.bits:
-            src: str = bit_model.src
-            meta: dict = bit_model.dict(exclude={"src"})
-            bit: Bit = Bit(src, **meta)
-            self._bits.append(bit)
+            for bit_model in registryfile_model.bits:
+                src: str = bit_model.src
+                meta: dict = bit_model.dict(exclude={"src"})
+                bit: Bit = Bit(src, **meta)
+                self._bits.append(bit)
 
-        for bit in self._bits:
-            bit.defaults = self._resolve_context(bit.defaults)
+            for bit in self._bits:
+                bit.defaults = self._resolve_context(bit.defaults)
 
-        for constant_model in registryfile_model.constants:
-            constant: Constant = Constant.from_model(constant_model)
-            self._constants.append(constant)
+            for constant_model in registryfile_model.constants:
+                constant: Constant = Constant.from_model(constant_model)
+                self._constants.append(constant)
 
-        if not as_dep:
-            for target_model in registryfile_model.targets:
-                target: Target = self._resolve_target(target_model)
-                self._targets.append(target)
+            if not as_dep:
+                for target_model in registryfile_model.targets:
+                    target: Target = self._resolve_target(target_model)
+                    self._targets.append(target)
 
     def _resolve_path(self, path: str) -> Path:
         return normalize_path(path, relative_to=self._path)
@@ -67,6 +68,7 @@ class RegistryFile(Registry):
     def _resolve_registry(self, path: str) -> Registry:
         registry_path: Path = self._resolve_path(path)
         registry: Registry = RegistryFactory.get(registry_path, as_dep=True)
+        self.add_dep(registry)
         return registry
 
     def _resolve_template(self, path: str) -> jinja2.Template:

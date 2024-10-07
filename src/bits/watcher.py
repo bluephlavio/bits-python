@@ -42,7 +42,7 @@ class Watcher(PatternMatchingEventHandler):
             return
         if self._debounce_timer:
             self._debounce_timer.cancel()
-        self._debounce_timer = Timer(1.0, self._notify_listeners, [event])
+        self._debounce_timer = Timer(0.1, self._notify_listeners, [event])
         self._debounce_timer.start()
 
     def _notify_listeners(self, event: FileSystemEvent):

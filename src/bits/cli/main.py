@@ -40,7 +40,7 @@ def render(path: Path, watch: bool = typer.Option(False)):
             registry.load(as_dep=False)
             registry.render()
 
-        registry.add_listener(reload_and_rerender)
+        registry.add_listener(reload_and_rerender, recursive=True)
         registry.watch()
 
         try:
