@@ -8,6 +8,7 @@ from .target_model import TargetModel
 
 
 class RegistryDataModel(BaseModel):
+    tags: List[str] | None = None
     bits: List[BitModel] = []
     constants: List[ConstantModel] = []
     targets: List[TargetModel] = []
