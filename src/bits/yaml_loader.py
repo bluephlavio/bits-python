@@ -1,8 +1,8 @@
 import re
+
 import yaml
 
 from .config import config
-
 
 var_pattern = re.compile(r"\$\{([^}]+)\}")
 

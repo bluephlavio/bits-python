@@ -17,10 +17,21 @@ class RegistryFolder(Registry):
 
     def load(self, as_dep: bool = False) -> None:
         self._bits.clear()
+        self._constants.clear()
         self._targets.clear()
 
         for path in self._path.rglob("**/*"):
-            if path.suffix in {".md", ".yaml"}:
+            if path.suffix in {".md", ".yaml", ".yml"}:
                 registry: Registry = RegistryFactory.get(path, as_dep=as_dep)
                 self._bits.extend(registry.bits)
+                self._constants.extend(registry.constants)
                 self._targets.extend(registry.targets)
+                self.add_dep(registry)
+
+    def add_listener(self, on_event, recursive=True) -> None:
+        for dep in self._deps:
+            dep.add_listener(on_event, recursive=recursive)
+
+    def watch(self) -> None:
+        for dep in self._deps:
+            dep.watch()

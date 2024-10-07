@@ -1,9 +1,9 @@
-from abc import ABC, abstractmethod
 import re
-from typing import List
+from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import List
 
-from ..models import RegistryDataModel, BitModel, ConstantModel, TargetModel
+from ..models import BitModel, ConstantModel, RegistryDataModel, TargetModel
 from ..yaml_loader import load_yaml
 
 
@@ -39,6 +39,7 @@ class RegistryFileMdParser(RegistryFileParser):
             raise ValueError("Invalid frontmatter format")
 
         frontmatter_content = load_yaml(parts[1])
+        tags: List[str] = frontmatter_content.get("tags", [])
         targets: List[TargetModel] = (
             [TargetModel(**target) for target in frontmatter_content["targets"]]
             if "targets" in frontmatter_content
@@ -53,7 +54,7 @@ class RegistryFileMdParser(RegistryFileParser):
         bits_src = filter(lambda x: x.strip(), parts[2:])
         bits: List[BitModel] = [self._parse_bit(bit_src) for bit_src in bits_src]
 
-        return RegistryDataModel(bits=bits, constants=constants, targets=targets)
+        return RegistryDataModel(tags=tags, bits=bits, constants=constants, targets=targets)
 
 
 class RegistryFileYamlParser(RegistryFileParser):
@@ -63,6 +64,7 @@ class RegistryFileYamlParser(RegistryFileParser):
 
         data = load_yaml(content)
 
+        tags: List[str] = data.get("tags", [])
         bits: List[BitModel] = (
             [BitModel(**bit) for bit in data["bits"]] if "bits" in data else []
         )
@@ -77,7 +79,7 @@ class RegistryFileYamlParser(RegistryFileParser):
             else []
         )
 
-        return RegistryDataModel(bits=bits, constants=constants, targets=targets)
+        return RegistryDataModel(tags=tags, bits=bits, constants=constants, targets=targets)
 
 
 class RegistryFileParserFactory:
@@ -85,7 +87,6 @@ class RegistryFileParserFactory:
     def get(path: Path) -> RegistryFileParser:
         if path.suffix in [".yml", ".yaml"]:
             return RegistryFileYamlParser()
-        elif path.suffix == ".md":
+        if path.suffix == ".md":
             return RegistryFileMdParser()
-        else:
-            raise ValueError(f"Unsupported file format: {path.suffix}")
+        raise ValueError(f"Unsupported file format: {path.suffix}")

@@ -5,7 +5,7 @@ from typing import Optional
 import typer
 
 from .. import __version__
-from ..registry import Registry, RegistryFile, RegistryFactory
+from ..registry import Registry, RegistryFactory, RegistryFile
 
 app = typer.Typer()
 
@@ -31,10 +31,16 @@ def render(path: Path, watch: bool = typer.Option(False)):
     if watch:
 
         def reload_and_rerender(event):  # pylint: disable=unused-argument
+            if not (
+                event.src_path.endswith(".yml")
+                or event.src_path.endswith(".yaml")
+                or event.src_path.endswith(".md")
+            ):
+                return
             registry.load(as_dep=False)
             registry.render()
 
-        registry.add_listener(reload_and_rerender)
+        registry.add_listener(reload_and_rerender, recursive=True)
         registry.watch()
 
         try:

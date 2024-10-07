@@ -1,6 +1,6 @@
 import configparser
-from configparser import ExtendedInterpolation
 import shutil
+from configparser import ExtendedInterpolation
 from pathlib import Path
 
 GLOBAL_BITS_CONFIG_DIR = Path("~/.bits").expanduser()

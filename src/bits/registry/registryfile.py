@@ -1,29 +1,30 @@
 from __future__ import annotations
+
 from pathlib import Path
 from typing import List
 
-from jinja2 import Template
+import jinja2
 
-from .registry import Registry
-from .registry_factory import RegistryFactory
-from .registryfile_parsers import RegistryFileParserFactory
-from .registryfile_dumpers import RegistryFileDumperFactory
+from ..bit import Bit
 from ..block import Block
 from ..collections import Collection
 from ..config import config
+from ..constant import Constant
 from ..env import EnvironmentFactory
 from ..helpers import normalize_path
 from ..models import (
     BitModel,
-    ConstantModel,
-    TargetModel,
     BlocksModel,
+    ConstantModel,
     ConstantsModel,
     RegistryDataModel,
+    TargetModel,
 )
 from ..target import Target
-from ..constant import Constant
-from ..bit import Bit
+from .registry import Registry
+from .registry_factory import RegistryFactory
+from .registryfile_dumpers import RegistryFileDumperFactory
+from .registryfile_parsers import RegistryFileParserFactory
 
 
 class RegistryFile(Registry):
@@ -36,29 +37,35 @@ class RegistryFile(Registry):
         self.load(as_dep=as_dep)
 
     def load(self, as_dep: bool = False):
-        registryfile_model: RegistryDataModel = self._parser.parse(self._path)
+        with self._load_lock:
+            registryfile_model: RegistryDataModel = self._parser.parse(self._path)
 
-        self._bits.clear()
-        self._constants.clear()
-        self._targets.clear()
+            self._bits.clear()
+            self._constants.clear()
+            self._targets.clear()
 
-        for bit_model in registryfile_model.bits:
-            src: str = bit_model.src
-            meta: dict = bit_model.dict(exclude={"src"})
-            bit: Bit = Bit(src, **meta)
-            self._bits.append(bit)
+            common_tags: List[str] = registryfile_model.tags or []
 
-        for bit in self._bits:
-            bit.defaults = self._resolve_context(bit.defaults)
+            for bit_model in registryfile_model.bits:
+                src: str = bit_model.src
+                meta: dict = bit_model.dict(exclude={"src"})
+                bit: Bit = Bit(src, **meta)
+                bit.tags.extend(common_tags)
+                self._bits.append(bit)
 
-        for constant_model in registryfile_model.constants:
-            constant: Constant = Constant.from_model(constant_model)
-            self._constants.append(constant)
+            for bit in self._bits:
+                bit.defaults = self._resolve_context(bit.defaults)
 
-        if not as_dep:
-            for target_model in registryfile_model.targets:
-                target: Target = self._resolve_target(target_model)
-                self._targets.append(target)
+            for constant_model in registryfile_model.constants:
+                constant: Constant = Constant.from_model(constant_model)
+                constant.tags.extend(common_tags)
+                self._constants.append(constant)
+
+            if not as_dep:
+                for target_model in registryfile_model.targets:
+                    target: Target = self._resolve_target(target_model)
+                    target.tags.extend(common_tags)
+                    self._targets.append(target)
 
     def _resolve_path(self, path: str) -> Path:
         return normalize_path(path, relative_to=self._path)
@@ -66,12 +73,13 @@ class RegistryFile(Registry):
     def _resolve_registry(self, path: str) -> Registry:
         registry_path: Path = self._resolve_path(path)
         registry: Registry = RegistryFactory.get(registry_path, as_dep=True)
+        self.add_dep(registry)
         return registry
 
-    def _resolve_template(self, path: str) -> Template:
+    def _resolve_template(self, path: str) -> jinja2.Template:
         template_path: Path = self._resolve_path(path)
         env = EnvironmentFactory.get(templates_folder=template_path.parent)
-        template: Template = env.get_template(template_path.name)
+        template: jinja2.Template = env.get_template(template_path.name)
         return template
 
     def _resolve_context(self, data: dict) -> dict:
@@ -128,7 +136,7 @@ class RegistryFile(Registry):
         name: str | None = data.name
         tags: List[str] = data.tags or []
 
-        template: Template = self._resolve_template(
+        template: jinja2.Template = self._resolve_template(
             data.template or config.get("DEFAULT", "template")
         )
 
