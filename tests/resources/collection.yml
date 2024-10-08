@@ -17,6 +17,5 @@ bits:
   tags: [astronomy, gravitation]
   author: Flavio Grandin
   defaults: { formula: "M=\\frac{Fr^2}{Gm}" }
-  src: '''
-Calculate the mass of the Sun with the formula $\VAR{ formula }$!!!
-'''
+  src: |
+    Calculate the mass of the Sun with the formula $\VAR{ formula }$!!!

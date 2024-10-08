@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List
+from typing import List, Callable
 
 import jinja2
 
@@ -21,6 +21,7 @@ from ..models import (
     TargetModel,
 )
 from ..target import Target
+from ..watcher import Watcher
 from .registry import Registry
 from .registry_factory import RegistryFactory
 from .registryfile_dumpers import RegistryFileDumperFactory
@@ -33,6 +34,7 @@ class RegistryFile(Registry):
         super().__init__(path)
         if not self._path.is_file():
             raise IsADirectoryError
+        self._watcher: Watcher = Watcher(self._path)
         self._parser = RegistryFileParserFactory.get(self._path)
         self.load(as_dep=as_dep)
 
@@ -164,3 +166,21 @@ class RegistryFile(Registry):
             bits=bits, constants=constants, targets=targets
         )
         dumper.dump(registry_data_model, path)
+
+    def add_listener(self, on_event: Callable, recursive=True) -> None:
+        self._watcher.add_listener(on_event)
+        if recursive:
+            for dep in self._deps:
+                dep.add_listener(on_event, recursive=True)
+
+    def watch(self, recursive=True) -> None:
+        self._watcher.start()
+        if recursive:
+            for dep in self._deps:
+                dep.watch(recursive=True)
+
+    def stop(self, recursive=True) -> None:
+        self._watcher.stop()
+        if recursive:
+            for dep in self._deps:
+                dep.stop(recursive=True)
