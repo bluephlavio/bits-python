@@ -7,15 +7,6 @@ runs:
   using: composite
 
   steps:
-
-  - name: Set up Python
-    uses: ./.github/actions/setup-python
-
-  - name: Install Commitizen
-    shell: bash
-    run: |
-      pip install commitizen
-
   - name: Bump version and create tag
     shell: bash
     run: |
@@ -23,5 +14,7 @@ runs:
       git config --global user.email "actions@github.com"
       cz bump --yes
       cz changelog
-      git push origin HEAD:${{ github.event.pull_request.head.ref }}
+      git add .
+      git commit -m "chore: bump version"
+      git push origin HEAD:dev
       git push --tags

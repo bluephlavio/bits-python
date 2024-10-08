@@ -44,10 +44,13 @@ class RegistryFile(Registry):
             self._constants.clear()
             self._targets.clear()
 
+            common_tags: List[str] = registryfile_model.tags or []
+
             for bit_model in registryfile_model.bits:
                 src: str = bit_model.src
                 meta: dict = bit_model.dict(exclude={"src"})
                 bit: Bit = Bit(src, **meta)
+                bit.tags.extend(common_tags)
                 self._bits.append(bit)
 
             for bit in self._bits:
@@ -55,11 +58,13 @@ class RegistryFile(Registry):
 
             for constant_model in registryfile_model.constants:
                 constant: Constant = Constant.from_model(constant_model)
+                constant.tags.extend(common_tags)
                 self._constants.append(constant)
 
             if not as_dep:
                 for target_model in registryfile_model.targets:
                     target: Target = self._resolve_target(target_model)
+                    target.tags.extend(common_tags)
                     self._targets.append(target)
 
     def _resolve_path(self, path: str) -> Path:
