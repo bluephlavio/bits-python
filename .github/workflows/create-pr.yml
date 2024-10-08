@@ -31,7 +31,7 @@ jobs:
       id: check_bump
       uses: ./.github/actions/check-bump
 
-  create-pr:
+  create_pr:
     needs: check_bump
     runs-on: ubuntu-latest
     permissions:
@@ -50,7 +50,13 @@ jobs:
     - name: Install Commitizen
       run: |
         pip install commitizen
-  
+
+    - name: Debug Check Bump Outputs
+      run: |
+        echo "bump_needed: ${{ needs.check_bump.outputs.bump_needed }}"
+        echo "from_version: ${{ needs.check_bump.outputs.from_version }}"
+        echo "to_version: ${{ needs.check_bump.outputs.to_version }}"
+
     - name: Bump Version
       if: needs.check_bump.outputs.bump_needed == 'true'
       uses: ./.github/actions/bump-version
@@ -66,7 +72,7 @@ jobs:
         fi
 
     - name: Create Pull Request
-      uses: ./.github/actions/create-pr
+      uses: ./.github/actions/_
       with:
         token: ${{ secrets.PAT_TOKEN }}
         title: |
