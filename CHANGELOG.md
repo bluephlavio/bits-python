@@ -1,4 +1,16 @@
+## v0.10.0 (2024-10-08)
+
 ## v0.9.2 (2024-10-08)
+
+### Feat
+
+- output_tex option added to Target render and build cli command
+- caching mechanism for target builds
+
+### Fix
+
+- RegistryFactory caching mechanism fixed to allow refreshed instances
+- registry deps cleared when starting loading
 
 ## v0.9.1 (2024-10-08)
 
