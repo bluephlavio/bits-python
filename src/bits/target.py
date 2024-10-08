@@ -3,6 +3,7 @@ import subprocess
 from multiprocessing import Process
 from pathlib import Path
 from typing import List
+import hashlib
 
 from jinja2 import Template
 
@@ -34,6 +35,8 @@ class Target(Element):
         else:
             raise ValueError("Target destination must be a pdf file")
 
+        self._last_rendered_hash = None
+
     def __str__(self) -> str:
         return f"Target: {self.name or self.id}"
 
@@ -59,9 +62,19 @@ class Target(Element):
             dest=str(self.dest),
         )
 
+    def render_tex_code(self) -> str:
+        tex_code: str = self.template.render(**self.context)
+        return tex_code
+
     def render(self) -> None:
         def run():
-            tex_code: str = self.template.render(**self.context)
+            tex_code: str = self.render_tex_code()
+            current_hash = hashlib.md5(tex_code.encode('utf-8')).hexdigest()
+
+            if current_hash == self._last_rendered_hash:
+                print("No changes detected, skipping rendering Latex.")
+                return
+
             with tmpdir():
                 tex_file = Path(f"{self.dest.stem}.tex")
                 write(tex_code, tex_file)
@@ -76,8 +89,9 @@ class Target(Element):
                     pdf_file = tex_file.with_suffix(".pdf")
                     self.dest.parent.mkdir(parents=True, exist_ok=True)
                     shutil.move(str(pdf_file), str(self.dest))
+                    self._last_rendered_hash = current_hash
                 except subprocess.CalledProcessError:
-                    print("Latex Build failed")
+                    print("Latex build failed")
 
         process: Process = Process(target=run)
         process.start()
