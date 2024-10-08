@@ -23,6 +23,15 @@ jobs:
     - name: Install Commitizen
       run: |
         pip install commitizen
+
+    - name: Verify repository state
+      run: |
+        echo "Current branch:"
+        git branch -a
+        echo "Last 5 commits:"
+        git log -5 --oneline
+        echo "Uncommitted changes:"
+        git status
   
     - name: Check bump
       id: check_bump
