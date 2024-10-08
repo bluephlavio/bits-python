@@ -7,14 +7,6 @@ runs:
   using: composite
 
   steps:
-  - name: Set up Python
-    uses: ./.github/actions/setup-python
-
-  - name: Install Commitizen
-    shell: bash
-    run: |
-      pip install commitizen
-
   - name: Bump version and create tag
     shell: bash
     run: |

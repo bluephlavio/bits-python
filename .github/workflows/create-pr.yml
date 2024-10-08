@@ -26,15 +26,6 @@ jobs:
     - name: Install Commitizen
       run: |
         pip install commitizen
-
-    - name: Verify repository state
-      run: |
-        echo "Current branch:"
-        git branch -a
-        echo "Last 5 commits:"
-        git log -5 --oneline
-        echo "Uncommitted changes:"
-        git status
   
     - name: Check bump
       id: check_bump
@@ -50,13 +41,23 @@ jobs:
     steps:
     - name: Check out repository
       uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: ./.github/actions/setup-python
+  
+    - name: Install Commitizen
+      run: |
+        pip install commitizen
   
     - name: Bump Version
       if: needs.check_bump.outputs.bump_needed == 'true'
       uses: ./.github/actions/bump-version
 
     - name: Check if PR already exists
-      id: check_pr
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         gh pr list --base main --head dev --json number --jq '.[0].number' > pr_number.txt
         if [ -s pr_number.txt ]; then
