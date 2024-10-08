@@ -17,7 +17,6 @@ jobs:
     steps:
     - name: Check out repository
       uses: actions/checkout@v3
-
     - name: Set up Python
       uses: ./.github/actions/setup-python
   
@@ -32,7 +31,6 @@ jobs:
   create-pr:
     needs: check_bump
     runs-on: ubuntu-latest
-
     permissions:
       contents: write
       pull-requests: write
@@ -40,6 +38,19 @@ jobs:
     steps:
     - name: Check out repository
       uses: actions/checkout@v3
+  
+    - name: Bump Version
+      if: needs.check_bump.outputs.bump_needed == 'true'
+      uses: ./.github/actions/bump-version
+
+    - name: Check if PR already exists
+      id: check_pr
+      run: |
+        gh pr list --base main --head dev --json number --jq '.[0].number' > pr_number.txt
+        if [ -s pr_number.txt ]; then
+          echo "PR already exists"
+          exit 0
+        fi
 
     - name: Create Pull Request
       uses: ./.github/actions/create-pr
