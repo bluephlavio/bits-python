@@ -72,7 +72,7 @@ jobs:
         fi
 
     - name: Create Pull Request
-      uses: ./.github/actions/_
+      uses: ./.github/actions/create-pr
       with:
         token: ${{ secrets.PAT_TOKEN }}
         title: |
