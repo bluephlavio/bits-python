@@ -2,14 +2,13 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import List
+from typing import List, Callable
 import threading
 
 from ..bit import Bit
 from ..collections import Collection
 from ..constant import Constant
 from ..target import Target
-from ..watcher import Watcher
 
 
 class Registry(ABC):
@@ -20,8 +19,6 @@ class Registry(ABC):
         self._path: Path = path
 
         self._deps: List[Registry] = []
-
-        self._watcher: Watcher = Watcher(self._path)
 
         self._bits: Collection[Bit] = Collection(Bit)
         self._constants: Collection[Constant] = Collection(Constant)
@@ -60,14 +57,14 @@ class Registry(ABC):
         if registry not in self._deps:
             self._deps.append(registry)
 
-    def add_listener(self, on_event, recursive=True) -> None:
-        self._watcher.add_listener(on_event)
-        if recursive:
-            for dep in self._deps:
-                dep.add_listener(on_event, recursive=True)
+    @abstractmethod
+    def add_listener(self, on_event: Callable, recursive=True) -> None:
+        pass
 
-    def watch(self) -> None:
-        self._watcher.start()
+    @abstractmethod
+    def watch(self, recursive=True) -> None:
+        pass
 
-    def stop(self) -> None:
-        self._watcher.stop()
+    @abstractmethod
+    def stop(self, recursive=True) -> None:
+        pass

@@ -13,7 +13,7 @@ jobs:
       bump_needed: ${{ steps.check_bump.outputs.bump_needed }}
       from_version: ${{ steps.check_bump.outputs.from_version }}
       to_version: ${{ steps.check_bump.outputs.to_version }}
-    
+
     steps:
     - name: Check out repository
       uses: actions/checkout@v3
@@ -22,22 +22,23 @@ jobs:
 
     - name: Set up Python
       uses: ./.github/actions/setup-python
-  
+
     - name: Install Commitizen
       run: |
         pip install commitizen
-  
+
     - name: Check bump
       id: check_bump
       uses: ./.github/actions/check-bump
 
   create_pr:
     needs: check_bump
+    if: needs.check_bump.outputs.bump_needed == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
-    
+
     steps:
     - name: Check out repository
       uses: actions/checkout@v3
@@ -46,30 +47,13 @@ jobs:
 
     - name: Set up Python
       uses: ./.github/actions/setup-python
-  
+
     - name: Install Commitizen
       run: |
         pip install commitizen
 
-    - name: Debug Check Bump Outputs
-      run: |
-        echo "bump_needed: ${{ needs.check_bump.outputs.bump_needed }}"
-        echo "from_version: ${{ needs.check_bump.outputs.from_version }}"
-        echo "to_version: ${{ needs.check_bump.outputs.to_version }}"
-
     - name: Bump Version
-      if: needs.check_bump.outputs.bump_needed == 'true'
       uses: ./.github/actions/bump-version
-
-    - name: Check if PR already exists
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        gh pr list --base main --head dev --json number --jq '.[0].number' > pr_number.txt
-        if [ -s pr_number.txt ]; then
-          echo "PR already exists"
-          exit 0
-        fi
 
     - name: Create Pull Request
       uses: ./.github/actions/create-pr

@@ -22,7 +22,7 @@ runs:
     shell: bash
     run: |
       echo "Running cz bump --yes --dry-run"
-      bump_output=$(cz bump --yes --dry-run 2>&1)
+      bump_output=$(cz bump --yes --dry-run 2>&1) || true
       echo "Bump output:"
       echo "$bump_output"
       printf "%s\n" "$bump_output" >> bump-output.txt
