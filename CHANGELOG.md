@@ -1,7 +1,10 @@
+## v0.9.2 (2024-10-08)
+
 ## v0.9.1 (2024-10-08)
 
 ### Fix
 
+- added RegistryFactory caching to fix the proliferation of watchers
 - watching system simplified by delegating only RegistryFile to have a watcher
 
 ## v0.9.0 (2024-10-08)
