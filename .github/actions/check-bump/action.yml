@@ -26,10 +26,8 @@ runs:
       echo "Bump output:"
       echo "$bump_output"
       printf "%s\n" "$bump_output" >> bump-output.txt
-      if echo "$bump_output" | grep -q '[NO_COMMITS_TO_BUMP]'; then
-        echo "No commits to bump"
-        echo "bump_needed=false" >> $GITHUB_OUTPUT
-      elif [ $? -eq 0 ]; then
+      
+      if echo "$bump_output" | grep -q 'increment detected'; then
         echo "Bump needed"
         echo "bump_needed=true" >> $GITHUB_OUTPUT
         from_version=$(echo "$bump_output" | grep -oP 'version [0-9]+\.[0-9]+\.[0-9]+ → [0-9]+\.[0-9]+\.[0-9]+' | cut -d' ' -f2)
@@ -37,10 +35,10 @@ runs:
         echo "from_version=$from_version" >> $GITHUB_OUTPUT
         echo "to_version=$to_version" >> $GITHUB_OUTPUT
       else
-        echo "Error running cz bump"
+        echo "No commits to bump"
         echo "bump_needed=false" >> $GITHUB_OUTPUT
       fi
-  
+
   - name: Upload bump output file
     uses: actions/upload-artifact@v3
     with:
