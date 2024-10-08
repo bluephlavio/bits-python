@@ -1,9 +1,10 @@
+import time
 from pathlib import Path
-from typing import Callable, List
+from threading import Timer
+from typing import List, Callable
 
 from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
-
 
 class Watcher(FileSystemEventHandler):
     def __init__(self, path: Path):
@@ -21,6 +22,8 @@ class Watcher(FileSystemEventHandler):
         self._observer.schedule(self, str(self._path.parent), recursive=False)
 
         self._listeners: List[Callable[[FileSystemEvent], None]] = []
+        self._last_modified = 0
+        self._debounce_timer = None
 
     def add_listener(self, on_event: Callable[[FileSystemEvent], None]) -> None:
         if on_event not in self._listeners:
@@ -28,8 +31,19 @@ class Watcher(FileSystemEventHandler):
 
     def on_modified(self, event: FileSystemEvent) -> None:
         if event.src_path == str(self._path):
-            for listener in self._listeners:
-                listener(event)
+            current_time = time.time()
+            if current_time - self._last_modified < 1:  # Debounce interval of 1 second
+                if self._debounce_timer:
+                    self._debounce_timer.cancel()
+                self._debounce_timer = Timer(1, self._notify_listeners, [event])
+                self._debounce_timer.start()
+            else:
+                self._notify_listeners(event)
+            self._last_modified = current_time
+
+    def _notify_listeners(self, event: FileSystemEvent) -> None:
+        for listener in self._listeners:
+            listener(event)
 
     def start(self) -> None:
         self._observer.start()
