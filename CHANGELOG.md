@@ -1,3 +1,9 @@
+## v0.9.1 (2024-10-08)
+
+### Fix
+
+- watching system simplified by delegating only RegistryFile to have a watcher
+
 ## v0.9.0 (2024-10-08)
 
 ### Feat
@@ -6,6 +12,7 @@
 
 ### Fix
 
+- watching system added to RegistryFolder where it delegates to files inside the folder
 - watching system added to RegistryFolder where it delegates to files inside the folder
 - watcher dependencies tracking and recursive listener attaching
 - debounce mechanism added to watcher to avoid too fast rebuilding triggers
