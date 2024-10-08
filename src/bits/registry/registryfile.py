@@ -40,11 +40,12 @@ class RegistryFile(Registry):
 
     def load(self, as_dep: bool = False):
         with self._load_lock:
-            registryfile_model: RegistryDataModel = self._parser.parse(self._path)
-
             self._bits.clear()
             self._constants.clear()
             self._targets.clear()
+            self._deps.clear()
+
+            registryfile_model: RegistryDataModel = self._parser.parse(self._path)
 
             common_tags: List[str] = registryfile_model.tags or []
 
