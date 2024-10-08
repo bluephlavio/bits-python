@@ -66,7 +66,7 @@ class Target(Element):
         tex_code: str = self.template.render(**self.context)
         return tex_code
 
-    def render(self) -> None:
+    def render(self, output_tex: bool = False) -> None:
         def run():
             tex_code: str = self.render_tex_code()
             current_hash = hashlib.md5(tex_code.encode('utf-8')).hexdigest()
@@ -78,6 +78,14 @@ class Target(Element):
             with tmpdir():
                 tex_file = Path(f"{self.dest.stem}.tex")
                 write(tex_code, tex_file)
+
+                if output_tex:
+                    tex_dest = self.dest.with_suffix(".tex")
+                    tex_dest.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.move(str(tex_file), str(tex_dest))
+                    self._last_rendered_hash = current_hash
+                    return
+
                 try:
                     subprocess.check_call(
                         [

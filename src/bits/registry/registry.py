@@ -46,10 +46,10 @@ class Registry(ABC):
     def load(self, as_dep: bool = False) -> None:
         pass
 
-    def render(self) -> None:
+    def render(self, output_tex: bool = False) -> None:
         with self._load_lock:
             for target in self._targets:
-                target.render()
+                target.render(output_tex=output_tex)
 
     def add_dep(self, registry: Registry) -> None:
         if not isinstance(registry, Registry):

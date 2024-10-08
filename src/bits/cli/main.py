@@ -24,9 +24,13 @@ def common(
 
 
 @app.command(name="build")
-def render(path: Path, watch: bool = typer.Option(False)):
+def render(
+    path: Path,
+    watch: bool = typer.Option(False),
+    output_tex: bool = typer.Option(False),
+):
     registry: Registry = RegistryFactory.get(path)
-    registry.render()
+    registry.render(output_tex=output_tex)
 
     if watch:
 
@@ -38,7 +42,7 @@ def render(path: Path, watch: bool = typer.Option(False)):
             ):
                 return
             registry.load(as_dep=False)
-            registry.render()
+            registry.render(output_tex=output_tex)
 
         registry.add_listener(reload_and_rerender, recursive=True)
         registry.watch()
