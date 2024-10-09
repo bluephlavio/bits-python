@@ -1,10 +1,11 @@
 import time
 from pathlib import Path
 from threading import Timer
-from typing import List, Callable
+from typing import Callable, List
 
 from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
+
 
 class Watcher(FileSystemEventHandler):
     def __init__(self, path: Path):

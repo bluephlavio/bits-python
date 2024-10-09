@@ -18,10 +18,7 @@ class RegistryFolder(Registry):
 
     def load(self, as_dep: bool = False) -> None:
         with self._load_lock:
-            self._bits.clear()
-            self._constants.clear()
-            self._targets.clear()
-            self._deps.clear()
+            self.clear_registry()
 
             for path in self._path.rglob("**/*"):
                 if path.suffix in {".md", ".yaml", ".yml"}:

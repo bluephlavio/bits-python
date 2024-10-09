@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List, Callable
+from typing import Callable, List
 
 import jinja2
 
@@ -40,10 +40,7 @@ class RegistryFile(Registry):
 
     def load(self, as_dep: bool = False):
         with self._load_lock:
-            self._bits.clear()
-            self._constants.clear()
-            self._targets.clear()
-            self._deps.clear()
+            self.clear_registry()
 
             registryfile_model: RegistryDataModel = self._parser.parse(self._path)
 
@@ -148,9 +145,7 @@ class RegistryFile(Registry):
         dest: Path = self._resolve_path(data.dest or ".")
         dest = dest / f"{self._path.stem}-{name}.pdf" if dest.suffix == "" else dest
 
-        target: Target = Target(
-            template, context, dest, name=name, tags=tags
-        )
+        target: Target = Target(template, context, dest, name=name, tags=tags)
         return target
 
     def to_registry_data_model(self) -> RegistryDataModel:

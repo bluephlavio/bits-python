@@ -54,7 +54,9 @@ class RegistryFileMdParser(RegistryFileParser):
         bits_src = filter(lambda x: x.strip(), parts[2:])
         bits: List[BitModel] = [self._parse_bit(bit_src) for bit_src in bits_src]
 
-        return RegistryDataModel(tags=tags, bits=bits, constants=constants, targets=targets)
+        return RegistryDataModel(
+            tags=tags, bits=bits, constants=constants, targets=targets
+        )
 
 
 class RegistryFileYamlParser(RegistryFileParser):
@@ -79,7 +81,9 @@ class RegistryFileYamlParser(RegistryFileParser):
             else []
         )
 
-        return RegistryDataModel(tags=tags, bits=bits, constants=constants, targets=targets)
+        return RegistryDataModel(
+            tags=tags, bits=bits, constants=constants, targets=targets
+        )
 
 
 class RegistryFileParserFactory:
