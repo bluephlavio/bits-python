@@ -60,6 +60,9 @@ jobs:
       uses: ./.github/actions/setup-python
       with:
         python-version: ${{ matrix.python-version }}
+    
+    - name: Install pdflatex
+      run: sudo apt-get install -y texlive-latex-base
 
     - name: Install the package
       uses: ./.github/actions/install-package

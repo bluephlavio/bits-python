@@ -1,4 +1,10 @@
+## v0.10.1 (2024-10-09)
+
 ## v0.10.0 (2024-10-08)
+
+### Fix
+
+- changed the rendering caching for same tex code targets with Renderer class implementation
 
 ## v0.9.2 (2024-10-08)
 
