@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+import threading
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import List, Callable
-import threading
+from typing import Callable, List
 
 from ..bit import Bit
 from ..collections import Collection
@@ -45,6 +45,12 @@ class Registry(ABC):
     @abstractmethod
     def load(self, as_dep: bool = False) -> None:
         pass
+
+    def clear_registry(self) -> None:
+        self._bits.clear()
+        self._constants.clear()
+        self._targets.clear()
+        self._deps.clear()
 
     def render(self, output_tex: bool = False) -> None:
         with self._load_lock:
