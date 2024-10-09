@@ -148,7 +148,9 @@ class RegistryFile(Registry):
         dest: Path = self._resolve_path(data.dest or ".")
         dest = dest / f"{self._path.stem}-{name}.pdf" if dest.suffix == "" else dest
 
-        target: Target = Target(template, context, dest, name=name, tags=tags)
+        target: Target = Target(
+            template, context, dest, name=name, tags=tags
+        )
         return target
 
     def to_registry_data_model(self) -> RegistryDataModel:

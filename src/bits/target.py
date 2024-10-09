@@ -1,15 +1,11 @@
-import shutil
-import subprocess
-from multiprocessing import Process
 from pathlib import Path
 from typing import List
-import hashlib
 
 from jinja2 import Template
 
 from .collections import Element
-from .helpers import tmpdir, write
 from .models import TargetModel
+from .renderer import Renderer
 
 
 class Target(Element):
@@ -67,40 +63,5 @@ class Target(Element):
         return tex_code
 
     def render(self, output_tex: bool = False) -> None:
-        def run():
-            tex_code: str = self.render_tex_code()
-            current_hash = hashlib.md5(tex_code.encode('utf-8')).hexdigest()
-
-            if current_hash == self._last_rendered_hash:
-                print("No changes detected, skipping rendering Latex.")
-                return
-
-            with tmpdir():
-                tex_file = Path(f"{self.dest.stem}.tex")
-                write(tex_code, tex_file)
-
-                if output_tex:
-                    tex_dest = self.dest.with_suffix(".tex")
-                    tex_dest.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.move(str(tex_file), str(tex_dest))
-                    self._last_rendered_hash = current_hash
-                    return
-
-                try:
-                    subprocess.check_call(
-                        [
-                            "pdflatex",
-                            "-interaction=nonstopmode",
-                            str(tex_file),
-                        ]
-                    )
-                    pdf_file = tex_file.with_suffix(".pdf")
-                    self.dest.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.move(str(pdf_file), str(self.dest))
-                    self._last_rendered_hash = current_hash
-                except subprocess.CalledProcessError:
-                    print("Latex build failed")
-
-        process: Process = Process(target=run)
-        process.start()
-        process.join()
+        tex_code: str = self.render_tex_code()
+        Renderer.render(tex_code, self.dest, output_tex)
