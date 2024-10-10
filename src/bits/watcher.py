@@ -46,8 +46,8 @@ class Watcher(FileSystemEventHandler):
         try:
             for listener in self._listeners:
                 listener(event)
-        except Exception as e: # pylint: disable=broad-except
-            print(f"Error while notifying listeners: {e}")
+        except Exception as error:  # pylint: disable=broad-except
+            print(f"Error while notifying listeners: {error}")
 
     def start(self) -> None:
         self._observer.start()
