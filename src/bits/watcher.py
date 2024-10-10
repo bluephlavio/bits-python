@@ -43,8 +43,11 @@ class Watcher(FileSystemEventHandler):
             self._last_modified = current_time
 
     def _notify_listeners(self, event: FileSystemEvent) -> None:
-        for listener in self._listeners:
-            listener(event)
+        try:
+            for listener in self._listeners:
+                listener(event)
+        except Exception as e: # pylint: disable=broad-except
+            print(f"Error while notifying listeners: {e}")
 
     def start(self) -> None:
         self._observer.start()
