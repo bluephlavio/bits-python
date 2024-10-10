@@ -1,3 +1,9 @@
+## v0.11.0 (2024-10-10)
+
+### Feat
+
+- pick, render, enumerate and show custom jinja2 filters added
+
 ## v0.10.1 (2024-10-09)
 
 ## v0.10.0 (2024-10-08)
