@@ -10,6 +10,10 @@ targets:
     - query:
         name: Equazioni
     - query:
+        name: Domande multiple
+      context:
+        picklist: [1, 2]
+    - query:
         name: Equazioni
       context:
         blocks:
@@ -27,19 +31,26 @@ bits:
 - name: Equazioni
   tags: [equazioni]
   defaults:
+    picklist: null
     blocks:
     - query:
         tags: [equazione]
   src: |
-    Risolvi le seguenti equazioni.
-
-    \BLOCK{ if blocks|length > 0 }
-    \begin{enumerate}
-    \BLOCK{ for block in blocks }
-    \item \VAR{ block.render() }
-    \BLOCK{ endfor }
-    \end{enumerate}
-    \BLOCK{ endif }
+    \VAR{ blocks|pick(picklist)|show(
+      "Risolvi l'equazione {item}.",
+      "Risolvi le seguenti equazioni."
+    ) }
+- name: Domande multiple
+  tags: [domande]
+  defaults:
+    picklist: null
+  src: |
+    Rispondi alle seguenti domande.
+    \VAR{ [
+      "Domanda 1",
+      "Domanda 2",
+      "Domanda 3",
+    ]|pick(picklist)|enumerate }
 - name: Equazione
   tags: [equazione]
   num: 1

@@ -18,3 +18,16 @@ bits:
     formula: "M=\\frac{Fr^2}{Gm}"
   src: |
     Calculate the mass of the Sun with the formula $\VAR{ formula }$!!!
+- name: Mass of the Planets
+  tags: [astronomy, gravitation]
+  author: Flavio Grandin
+  defaults:
+    pick: []
+  src: |
+    Calculate the mass of the following planets.
+    \begin{enumerate}
+    \item Mercury
+    \item Venus
+    \item Earth
+    \item Mars
+    \end{enumerate}
