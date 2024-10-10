@@ -42,6 +42,10 @@ class EnvironmentFactory:
         env.filters["floor"] = floor_filter
         env.filters["ceil"] = ceil_filter
         env.filters["getitem"] = getitem_filter
+        env.filters["pick"] = pick_filter
+        env.filters["render"] = render_filter
+        env.filters["enumerate"] = enumerate_filter
+        env.filters["show"] = show_filter
 
         cls._env_cache[env_key] = env
         return env

@@ -6,7 +6,7 @@ tags:: [equazione]
 num:: 1
 
 ```latex
-$x+2=0$
+$x+1=0$
 ```
 ---
 name: Equazione

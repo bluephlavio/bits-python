@@ -5,13 +5,28 @@ default_install_hook_types:
 repos:
 - repo: local
   hooks:
-  - id: check-dev-against-main
-    name: Check dev against main
+  - id: check-local-against-remote
+    name: Check local against remote
     description: >
-      Check whether the current branch is up-to-date with the main branch.
-    entry: ./scripts/check-dev-against-main.sh
+      Check whether the current branch is up-to-date with the remote dev branch.
+    entry: ./scripts/check-local-against-remote.sh
     language: script
     stages: [pre-commit]
+  - id: format
+    name: Format code
+    description: >
+      Format the code using poetry run poe format.
+    entry: ./scripts/format.sh
+    language: script
+    stages: [pre-commit]
+  - id: lint
+    name: Lint code
+    description: >
+      Lint the code using poetry run poe lint.
+    entry: ./scripts/lint.sh
+    language: script
+    stages: [pre-commit]
+
 - repo: https://github.com/commitizen-tools/commitizen
   rev: v3.6.0
   hooks:
