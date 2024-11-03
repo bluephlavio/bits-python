@@ -23,13 +23,28 @@ class RegistryFactory:  # pylint: disable=too-few-public-methods
 
             registry = RegistryFile(normalized_path, **kwargs)
         elif normalized_path.is_dir():
-            # pylint: disable=import-outside-toplevel
-            from .registryfolder import RegistryFolder
+            index_file = RegistryFactory._search_for_index(normalized_path)
+            if index_file:
+                # pylint: disable=import-outside-toplevel
+                from .registryfile import RegistryFile
 
-            registry = RegistryFolder(normalized_path, **kwargs)
+                registry = RegistryFile(index_file, **kwargs)
+            else:
+                # pylint: disable=import-outside-toplevel
+                from .registryfolder import RegistryFolder
+
+                registry = RegistryFolder(normalized_path, **kwargs)
         else:
             raise ValueError(f"Invalid path: {normalized_path}")
 
         registry.load(**kwargs)
         RegistryFactory._cache[normalized_path] = registry
         return registry
+
+    @staticmethod
+    def _search_for_index(path: Path) -> Union[Path, None]:
+        for index_file in ["index.md", "index.yaml", "index.yml"]:
+            index_path = path / index_file
+            if index_path.exists():
+                return index_path
+        return None
