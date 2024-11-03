@@ -1,3 +1,20 @@
+## v0.13.0 (2024-11-03)
+
+### Feat
+
+- pick, render, enumerate and show custom jinja2 filters added
+- output_tex option added to Target render and build cli command
+- caching mechanism for target builds
+
+### Fix
+
+- folder index file feature fixed
+- folder index file support feature fixed
+- changed the rendering caching for same tex code targets with Renderer class implementation
+- RegistryFactory caching mechanism fixed to allow refreshed instances
+- registry deps cleared when starting loading
+- added RegistryFactory caching to fix the proliferation of watchers
+
 ## v0.12.0 (2024-11-03)
 
 ## v0.11.0 (2024-10-10)
