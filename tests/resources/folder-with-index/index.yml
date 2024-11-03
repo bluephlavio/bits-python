@@ -1,0 +1,9 @@
+tags: []
+bits:
+  - name: Test Bit
+    src: |
+      This is a test bit.
+constants:
+  - name: Test Constant
+    symbol: TC
+    value: 42

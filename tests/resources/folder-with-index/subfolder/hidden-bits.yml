@@ -1,0 +1,4 @@
+bits:
+- name: Test Bit
+  src: |
+    This is a test bit.

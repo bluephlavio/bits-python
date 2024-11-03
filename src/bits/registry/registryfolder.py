@@ -20,13 +20,31 @@ class RegistryFolder(Registry):
         with self._load_lock:
             self.clear_registry()
 
-            for path in self._path.rglob("**/*"):
-                if path.suffix in {".md", ".yaml", ".yml"}:
+            for path in self._path.iterdir():
+                if path.is_file() and path.suffix in {".md", ".yaml", ".yml"}:
                     registry: Registry = RegistryFactory.get(path, as_dep=as_dep)
                     self._bits.extend(registry.bits)
                     self._constants.extend(registry.constants)
                     self._targets.extend(registry.targets)
                     self.add_dep(registry)
+                elif path.is_dir():
+                    index_file = RegistryFactory.search_for_index(path)
+                    if index_file:
+                        registry: Registry = RegistryFactory.get(
+                            index_file, as_dep=as_dep
+                        )
+                        self._bits.extend(registry.bits)
+                        self._constants.extend(registry.constants)
+                        self._targets.extend(registry.targets)
+                        self.add_dep(registry)
+                    else:
+                        subfolder_registry: Registry = RegistryFolder(
+                            path, as_dep=as_dep
+                        )
+                        self._bits.extend(subfolder_registry.bits)
+                        self._constants.extend(subfolder_registry.constants)
+                        self._targets.extend(subfolder_registry.targets)
+                        self.add_dep(subfolder_registry)
 
     def add_listener(self, on_event: Callable, recursive=True) -> None:
         for dep in self._deps:
