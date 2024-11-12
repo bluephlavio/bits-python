@@ -1,7 +1,9 @@
 {
 	"name": "bits",
 	"dockerFile": "Dockerfile",
-	"postCreateCommand": "poetry run poetry install",
+	"postCreateCommand": "poetry install",
+	"postStartCommand": "sudo service docker start",
+	"runArgs": ["--privileged"],
 	"customizations": {
 		"vscode": {
 			"settings": {

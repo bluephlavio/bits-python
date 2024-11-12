@@ -1,0 +1,48 @@
+name: Post-Merge Bump and Sync
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'pyproject.toml'
+      - 'CHANGELOG.md'
+
+jobs:
+  bump_version:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out main branch
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: ./.github/actions/setup-python
+
+    - name: Install Commitizen
+      run: |
+        pip install commitizen
+
+    - name: Bump version
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        cz bump --yes
+        git push origin HEAD:main --tags
+
+  sync_dev:
+    needs: bump_version
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out dev branch
+      uses: actions/checkout@v3
+      with:
+        ref: dev
+        fetch-depth: 0
+
+    - name: Rebase dev onto main
+      run: |
+        git remote update
+        git rebase origin/main
+        git push origin dev --force-with-lease

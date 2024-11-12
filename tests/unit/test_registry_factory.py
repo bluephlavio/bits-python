@@ -17,5 +17,6 @@ class TestRegistryFactory(unittest.TestCase):
         registry = RegistryFactory.get(path_without_index)
         self.assertIsInstance(registry, RegistryFolder)
 
+
 if __name__ == "__main__":
     unittest.main()
