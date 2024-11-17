@@ -1,4 +1,4 @@
 bits:
-- name: Test Bit
+- name: Hidden Bit
   src: |
-    This is a test bit.
+    This is a hidden bit.

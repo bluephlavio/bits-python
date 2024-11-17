@@ -1,4 +1,6 @@
 tags: []
+import:
+- registry: ./subfolder/visible-bits.yml
 bits:
   - name: Test Bit
     src: |

@@ -40,6 +40,7 @@ class RegistryFileMdParser(RegistryFileParser):
 
         frontmatter_content = load_yaml(parts[1])
         tags: List[str] = frontmatter_content.get("tags", [])
+        imports: List[dict] = frontmatter_content.get("import", [])
         targets: List[TargetModel] = (
             [TargetModel(**target) for target in frontmatter_content["targets"]]
             if "targets" in frontmatter_content
@@ -55,7 +56,7 @@ class RegistryFileMdParser(RegistryFileParser):
         bits: List[BitModel] = [self._parse_bit(bit_src) for bit_src in bits_src]
 
         return RegistryDataModel(
-            tags=tags, bits=bits, constants=constants, targets=targets
+            tags=tags, bits=bits, constants=constants, targets=targets, imports=imports
         )
 
 
@@ -67,6 +68,7 @@ class RegistryFileYamlParser(RegistryFileParser):
         data = load_yaml(content)
 
         tags: List[str] = data.get("tags", [])
+        imports: List[dict] = data.get("import", [])
         bits: List[BitModel] = (
             [BitModel(**bit) for bit in data["bits"]] if "bits" in data else []
         )
@@ -82,7 +84,7 @@ class RegistryFileYamlParser(RegistryFileParser):
         )
 
         return RegistryDataModel(
-            tags=tags, bits=bits, constants=constants, targets=targets
+            tags=tags, bits=bits, constants=constants, targets=targets, imports=imports
         )
 
 
