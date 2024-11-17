@@ -26,6 +26,7 @@ class RegistryFileMdDumper(RegistryFileDumper):
             {
                 "targets": [target.dict() for target in data.targets],
                 "constants": [constant.dict() for constant in data.constants],
+                "import": [import_entry for import_entry in data.imports],
             },
             default_flow_style=False,
         ).strip()

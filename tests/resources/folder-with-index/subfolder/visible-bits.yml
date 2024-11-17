@@ -1,0 +1,4 @@
+bits:
+- name: Visible Bit
+  src: |
+    This is a visible bit.

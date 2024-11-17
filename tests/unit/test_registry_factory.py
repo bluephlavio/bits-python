@@ -12,6 +12,10 @@ class TestRegistryFactory(unittest.TestCase):
         registry = RegistryFactory.get(path_with_index)
         self.assertIsInstance(registry, RegistryFile)
 
+        bit_names = [bit.name for bit in registry.bits]
+        self.assertIn("Visible Bit", bit_names)
+        self.assertNotIn("Hidden Bit", bit_names)
+
     def test_registry_factory_without_index_file(self):
         path_without_index = Path("tests/resources/folder-without-index")
         registry = RegistryFactory.get(path_without_index)
