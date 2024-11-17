@@ -46,15 +46,11 @@ class RegistryFile(Registry):
 
             common_tags: List[str] = registryfile_model.tags or []
 
-            imported_bits: List[Bit] = []
-            imported_constants: List[Constant] = []
-            imported_targets: List[Target] = []
-
-            for import_entry in registryfile_model.imports:
-                imported_registry = self._resolve_registry(import_entry["registry"])
-                imported_bits.extend(imported_registry.bits)
-                imported_constants.extend(imported_registry.constants)
-                imported_targets.extend(imported_registry.targets)
+            (
+                imported_bits,
+                imported_constants,
+                imported_targets,
+            ) = self._import_registry_data(registryfile_model.imports)
 
             for bit_model in registryfile_model.bits:
                 src: str = bit_model.src
@@ -82,6 +78,19 @@ class RegistryFile(Registry):
                     self._targets.append(target)
 
                 self._targets.extend(imported_targets)
+
+    def _import_registry_data(self, imports):
+        imported_bits: List[Bit] = []
+        imported_constants: List[Constant] = []
+        imported_targets: List[Target] = []
+
+        for import_entry in imports:
+            imported_registry = self._resolve_registry(import_entry["registry"])
+            imported_bits.extend(imported_registry.bits)
+            imported_constants.extend(imported_registry.constants)
+            imported_targets.extend(imported_registry.targets)
+
+        return imported_bits, imported_constants, imported_targets
 
     def _resolve_path(self, path: str) -> Path:
         return normalize_path(path, relative_to=self._path)
