@@ -46,12 +46,20 @@ class RegistryFile(Registry):
 
             common_tags: List[str] = registryfile_model.tags or []
 
+            (
+                imported_bits,
+                imported_constants,
+                imported_targets,
+            ) = self._import_registry_data(registryfile_model.imports)
+
             for bit_model in registryfile_model.bits:
                 src: str = bit_model.src
                 meta: dict = bit_model.dict(exclude={"src"})
                 bit: Bit = Bit(src, **meta)
                 bit.tags.extend(common_tags)
                 self._bits.append(bit)
+
+            self._bits.extend(imported_bits)
 
             for bit in self._bits:
                 bit.defaults = self._resolve_context(bit.defaults)
@@ -61,11 +69,28 @@ class RegistryFile(Registry):
                 constant.tags.extend(common_tags)
                 self._constants.append(constant)
 
+            self._constants.extend(imported_constants)
+
             if not as_dep:
                 for target_model in registryfile_model.targets:
                     target: Target = self._resolve_target(target_model)
                     target.tags.extend(common_tags)
                     self._targets.append(target)
+
+                self._targets.extend(imported_targets)
+
+    def _import_registry_data(self, imports):
+        imported_bits: List[Bit] = []
+        imported_constants: List[Constant] = []
+        imported_targets: List[Target] = []
+
+        for import_entry in imports:
+            imported_registry = self._resolve_registry(import_entry["registry"])
+            imported_bits.extend(imported_registry.bits)
+            imported_constants.extend(imported_registry.constants)
+            imported_targets.extend(imported_registry.targets)
+
+        return imported_bits, imported_constants, imported_targets
 
     def _resolve_path(self, path: str) -> Path:
         return normalize_path(path, relative_to=self._path)

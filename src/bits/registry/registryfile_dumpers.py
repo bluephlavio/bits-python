@@ -24,8 +24,10 @@ class RegistryFileMdDumper(RegistryFileDumper):
 
         frontmatter = yaml.dump(
             {
+                "tags": data.tags,
                 "targets": [target.dict() for target in data.targets],
                 "constants": [constant.dict() for constant in data.constants],
+                "import": list(data.imports),
             },
             default_flow_style=False,
         ).strip()

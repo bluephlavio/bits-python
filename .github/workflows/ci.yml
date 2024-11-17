@@ -3,8 +3,10 @@ name: CI
 on:
   push:
     branches:
-      - main
-      - dev
+      - '*'
+  pull_request:
+    branches:
+      - '*'
 
 jobs:
   build:
@@ -23,7 +25,6 @@ jobs:
       uses: ./.github/actions/build-package
 
   lint:
-    needs: build
     runs-on: ubuntu-latest
     steps:
     - name: Check out repository
