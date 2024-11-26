@@ -1,3 +1,4 @@
+# pylint: disable=protected-access
 import unittest
 from pathlib import Path
 from bits.registry.registryfile import RegistryFile
