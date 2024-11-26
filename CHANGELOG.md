@@ -1,3 +1,10 @@
+## v0.14.0 (2024-11-26)
+
+### Feat
+
+- support resolving all bits from registry when query is absent in `blocks`
+- introduce import field to registry files
+
 ## v0.13.0 (2024-11-03)
 
 ### Feat
