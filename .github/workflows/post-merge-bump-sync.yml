@@ -24,9 +24,9 @@ jobs:
       run: |
         pip install commitizen
 
-    - name: Authenticate with GitHub
+    - name: Configure Git to use GitHub token
       run: |
-        echo "${{ secrets.PAT_TOKEN }}" | gh auth login --with-token
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
 
     - name: Bump version
       run: |
