@@ -137,7 +137,10 @@ class RegistryFile(Registry):
             self._resolve_registry(data.registry) if data.registry else self
         )
 
-        bits: Collection[Bit] = registry.bits.query(**data.query.dict())
+        if data.query:
+            bits: Collection[Bit] = registry.bits.query(**data.query.dict())
+        else:
+            bits: Collection[Bit] = registry.bits
 
         context: dict = self._resolve_context(data.context)
 
