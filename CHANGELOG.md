@@ -1,3 +1,9 @@
+## v0.14.1 (2024-11-26)
+
+### Fix
+
+- avoid resolution of defaults context on imported bits
+
 ## v0.14.0 (2024-11-26)
 
 ### Feat
