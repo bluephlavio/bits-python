@@ -19,3 +19,12 @@ bits:
   defaults: { formula: "M=\\frac{Fr^2}{Gm}" }
   src: |
     Calculate the mass of the Sun with the formula $\VAR{ formula }$!!!
+- name: With imported blocks
+  tags: [imported]
+  defaults:
+    blocks:
+    - registry: ./folder-with-index
+  src: |
+    \begin{enumerate}
+      \item \VAR{ blocks|render }
+    \end{enumerate}
