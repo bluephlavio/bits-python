@@ -1,3 +1,5 @@
+import:
+- registry: ./collection.yml
 targets:
   - name: target
     template: ./templates/test.tex.j2
@@ -9,16 +11,15 @@ targets:
       type: null
       date: Date
       blocks:
-        - registry: ./collection.md
-          query:
+        - query:
             name: Mass of the Sun
           metadata:
             pts: [4, 4, 5, 3]
         - registry: ./collection.yml
           query:
-            tags: [common-tag]
-          metadata:
-            pts: [4, 4, 5, 3]
-        - registry: ./collection.yml
+            name: With imported blocks
+          context:
+            blocks:
+            - registry: ./folder-with-index
           metadata:
             pts: [4, 4, 5, 3]

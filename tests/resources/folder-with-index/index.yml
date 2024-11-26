@@ -2,10 +2,12 @@ tags: []
 import:
 - registry: ./subfolder/visible-bits.yml
 bits:
-  - name: Test Bit
-    src: |
-      This is a test bit.
+- name: Test Bit
+  src: |
+    This is a test bit.
+- src: |
+    This is a test bit without a name. 
 constants:
-  - name: Test Constant
-    symbol: TC
-    value: 42
+- name: Test Constant
+  symbol: TC
+  value: 42

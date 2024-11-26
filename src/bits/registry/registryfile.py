@@ -59,10 +59,10 @@ class RegistryFile(Registry):
                 bit.tags.extend(common_tags)
                 self._bits.append(bit)
 
-            self._bits.extend(imported_bits)
-
             for bit in self._bits:
                 bit.defaults = self._resolve_context(bit.defaults)
+
+            self._bits.extend(imported_bits)
 
             for constant_model in registryfile_model.constants:
                 constant: Constant = Constant.from_model(constant_model)
@@ -178,8 +178,9 @@ class RegistryFile(Registry):
 
     def to_registry_data_model(self) -> RegistryDataModel:
         bits = [bit.to_bit_model() for bit in self.bits]
+        constants = [constant.to_constant_model() for constant in self.constants]
         targets = [target.to_target_model() for target in self.targets]
-        return RegistryDataModel(bits=bits, targets=targets)
+        return RegistryDataModel(bits=bits, constants=constants, targets=targets)
 
     def dump(self, path: Path):
         dumper = RegistryFileDumperFactory.get(path)
