@@ -24,6 +24,10 @@ jobs:
       run: |
         pip install commitizen
 
+    - name: Authenticate with GitHub
+      run: |
+        echo "${{ secrets.PAT_TOKEN }}" | gh auth login --with-token
+
     - name: Bump version
       run: |
         git config --global user.name "GitHub Actions"
