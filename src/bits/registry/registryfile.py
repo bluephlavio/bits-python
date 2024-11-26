@@ -138,7 +138,9 @@ class RegistryFile(Registry):
         )
 
         if data.query:
-            bits: Collection[Bit] = registry.bits.query(**data.query.dict())
+            bits: Collection[Bit] = registry.bits.query(
+                **data.query.dict()
+            )
         else:
             bits: Collection[Bit] = registry.bits
 
