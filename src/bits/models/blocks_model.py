@@ -5,6 +5,6 @@ from .bits_query_model import BitsQueryModel
 
 class BlocksModel(BaseModel):  # pylint: disable=too-few-public-methods
     registry: str | None = None
-    query: BitsQueryModel
+    query: BitsQueryModel | None = None
     context: dict = {}
     metadata: dict = {}
