@@ -24,9 +24,9 @@ jobs:
       run: |
         pip install commitizen
 
-    - name: Configure Git to use GitHub token
+    - name: Configure Git to use PAT
       run: |
-        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+        git remote set-url origin https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/${{ github.repository }}.git
 
     - name: Bump version
       run: |
