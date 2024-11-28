@@ -11,6 +11,7 @@ from ..collections import Collection
 from ..config import config
 from ..constant import Constant
 from ..env import EnvironmentFactory
+from ..exceptions import RegistryLoadError, TemplateContextError, TemplateLoadError
 from ..helpers import normalize_path
 from ..models import (
     BitModel,
@@ -39,45 +40,61 @@ class RegistryFile(Registry):
         self.load(as_dep=as_dep)
 
     def load(self, as_dep: bool = False):
-        with self._load_lock:
-            self.clear_registry()
+        try:
+            with self._load_lock:
+                self.clear_registry()
 
-            registryfile_model: RegistryDataModel = self._parser.parse(self._path)
+                registryfile_model: RegistryDataModel = self._parser.parse(self._path)
 
-            common_tags: List[str] = registryfile_model.tags or []
+                common_tags: List[str] = registryfile_model.tags or []
 
-            (
-                imported_bits,
-                imported_constants,
-                imported_targets,
-            ) = self._import_registry_data(registryfile_model.imports)
+                (
+                    imported_bits,
+                    imported_constants,
+                    imported_targets,
+                ) = self._import_registry_data(registryfile_model.imports)
 
-            for bit_model in registryfile_model.bits:
-                src: str = bit_model.src
-                meta: dict = bit_model.dict(exclude={"src"})
-                bit: Bit = Bit(src, **meta)
-                bit.tags.extend(common_tags)
-                self._bits.append(bit)
+                self._load_bits(registryfile_model.bits, common_tags)
+                self._bits.extend(imported_bits)
 
-            for bit in self._bits:
+                self._load_constants(registryfile_model.constants, common_tags)
+                self._constants.extend(imported_constants)
+
+                if not as_dep:
+                    self._load_targets(registryfile_model.targets, common_tags)
+                    self._targets.extend(imported_targets)
+        except Exception as err:
+            raise RegistryLoadError(path=self._path) from err
+
+    def _load_bits(self, bit_models: List[BitModel], common_tags: List[str]):
+        for bit_model in bit_models:
+            src: str = bit_model.src
+            meta: dict = bit_model.dict(exclude={"src"})
+            bit: Bit = Bit(src, **meta)
+            bit.tags.extend(common_tags)
+            self._bits.append(bit)
+
+        for bit in self._bits:
+            try:
                 bit.defaults = self._resolve_context(bit.defaults)
+            except Exception as err:
+                raise TemplateContextError(
+                    f"Could not resolve bit defaults: \n\n{bit.defaults}\n"
+                ) from err
 
-            self._bits.extend(imported_bits)
+    def _load_constants(
+        self, constant_models: List[ConstantModel], common_tags: List[str]
+    ):
+        for constant_model in constant_models:
+            constant: Constant = Constant.from_model(constant_model)
+            constant.tags.extend(common_tags)
+            self._constants.append(constant)
 
-            for constant_model in registryfile_model.constants:
-                constant: Constant = Constant.from_model(constant_model)
-                constant.tags.extend(common_tags)
-                self._constants.append(constant)
-
-            self._constants.extend(imported_constants)
-
-            if not as_dep:
-                for target_model in registryfile_model.targets:
-                    target: Target = self._resolve_target(target_model)
-                    target.tags.extend(common_tags)
-                    self._targets.append(target)
-
-                self._targets.extend(imported_targets)
+    def _load_targets(self, target_models: List[TargetModel], common_tags: List[str]):
+        for target_model in target_models:
+            target: Target = self._resolve_target(target_model)
+            target.tags.extend(common_tags)
+            self._targets.append(target)
 
     def _import_registry_data(self, imports):
         imported_bits: List[Bit] = []
@@ -102,10 +119,15 @@ class RegistryFile(Registry):
         return registry
 
     def _resolve_template(self, path: str) -> jinja2.Template:
-        template_path: Path = self._resolve_path(path)
-        env = EnvironmentFactory.get(templates_folder=template_path.parent)
-        template: jinja2.Template = env.get_template(template_path.name)
-        return template
+        try:
+            template_path: Path = self._resolve_path(path)
+            env = EnvironmentFactory.get(templates_folder=template_path.parent)
+            template: jinja2.Template = env.get_template(template_path.name)
+            return template
+        except Exception as err:
+            raise TemplateLoadError(
+                f"Error loading template at {template_path}"
+            ) from err
 
     def _resolve_context(self, data: dict) -> dict:
         context: dict = {
@@ -142,7 +164,10 @@ class RegistryFile(Registry):
         else:
             bits: Collection[Bit] = registry.bits
 
-        context: dict = self._resolve_context(data.context)
+        try:
+            context: dict = self._resolve_context(data.context)
+        except Exception as err:
+            raise TemplateContextError("Could not resolve block context.") from err
 
         metadata: dict = data.metadata
 
@@ -168,7 +193,10 @@ class RegistryFile(Registry):
             data.template or config.get("DEFAULT", "template")
         )
 
-        context: dict = self._resolve_context(data.context)
+        try:
+            context: dict = self._resolve_context(data.context)
+        except Exception as err:
+            raise TemplateContextError("Could not resolve target context.") from err
 
         dest: Path = self._resolve_path(data.dest or ".")
         dest = dest / f"{self._path.stem}-{name}.pdf" if dest.suffix == "" else dest
@@ -204,7 +232,7 @@ class RegistryFile(Registry):
         self._watcher.start()
         if recursive:
             for dep in self._deps:
-                dep.watch(recursive=True)
+                dep.watch(recursive=recursive)
 
     def stop(self, recursive=True) -> None:
         self._watcher.stop()

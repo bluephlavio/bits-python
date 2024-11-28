@@ -1,13 +1,17 @@
-import time
 from pathlib import Path
 from typing import Optional
 
 import typer
+from rich.console import Console
+from rich.traceback import install
 
 from .. import __version__
-from ..registry import Registry, RegistryFactory, RegistryFile
+from ..registry import RegistryFactory, RegistryFile
+from .helpers import initialize_registry, watch_for_changes
 
 app = typer.Typer()
+console = Console()
+install()
 
 
 def version_callback(value: bool):
@@ -29,29 +33,13 @@ def render(
     watch: bool = typer.Option(False),
     output_tex: bool = typer.Option(False),
 ):
-    registry: Registry = RegistryFactory.get(path)
-    registry.render(output_tex=output_tex)
+    console.print("[bold green]Starting build process...[/bold green]")
+
+    registry = initialize_registry(path, console, watch, output_tex)
 
     if watch:
-
-        def reload_and_rerender(event):  # pylint: disable=unused-argument
-            if not (
-                event.src_path.endswith(".yml")
-                or event.src_path.endswith(".yaml")
-                or event.src_path.endswith(".md")
-            ):
-                return
-            registry.load(as_dep=False)
-            registry.render(output_tex=output_tex)
-
-        registry.add_listener(reload_and_rerender, recursive=True)
-        registry.watch()
-
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            registry.stop()
+        console.print("[bold yellow]Watching for file changes...[/bold yellow]")
+        watch_for_changes(registry, console, output_tex)
 
 
 @app.command(name="convert")

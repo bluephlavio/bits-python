@@ -3,6 +3,7 @@
 from pathlib import Path
 from typing import Union
 
+from ..exceptions import RegistryNotFoundError
 from ..helpers import normalize_path
 from .registry import Registry
 
@@ -34,7 +35,7 @@ class RegistryFactory:  # pylint: disable=too-few-public-methods
 
                 registry = RegistryFolder(normalized_path, **kwargs)
         else:
-            raise ValueError(f"Invalid path: {normalized_path}")
+            raise RegistryNotFoundError(path=normalized_path)
 
         registry.load(**kwargs)
         RegistryFactory._cache[normalized_path] = registry

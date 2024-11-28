@@ -4,6 +4,7 @@ from jinja2 import Template
 
 from .collections import Element
 from .env import EnvironmentFactory
+from .exceptions import TemplateLoadError, TemplateRenderError
 from .models import BitModel
 
 
@@ -27,7 +28,16 @@ class Bit(Element):
 
         self.defaults: dict = defaults or {}
 
-        self.template: Template = EnvironmentFactory.get().from_string(self.src)
+        try:
+            self.template: Template = EnvironmentFactory.get().from_string(self.src)
+        except Exception as err:
+            raise TemplateLoadError(f"Unable to load bit source: \n\n{self}\n") from err
+
+    def __repr__(self) -> str:
+        return f"Bit(src={self.src})"
+
+    def __str__(self) -> str:
+        return self.src
 
     @property
     def author(self) -> str | None:
@@ -44,7 +54,10 @@ class Bit(Element):
     def render(self, **kwargs) -> str:
         context: dict = {**self.defaults}
         context.update(**kwargs)
-        return self.template.render(context)
+        try:
+            return self.template.render(context)
+        except Exception as err:
+            raise TemplateRenderError(f"Error rendering bit {self.id}") from err
 
     def to_model(self) -> BitModel:
         return BitModel(
