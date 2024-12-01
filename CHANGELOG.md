@@ -1,3 +1,9 @@
+## v0.15.0 (2024-12-01)
+
+### Feat
+
+- improved error handling, reporting and registry initialization in the cli
+
 ## v0.14.1 (2024-11-26)
 
 ### Fix
