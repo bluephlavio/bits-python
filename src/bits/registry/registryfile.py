@@ -44,7 +44,9 @@ class RegistryFile(Registry):
             with self._load_lock:
                 self.clear_registry()
 
-                self.registryfile_model: RegistryDataModel = self._parser.parse(self._path)
+                self.registryfile_model: RegistryDataModel = self._parser.parse(
+                    self._path
+                )
 
                 common_tags: List[str] = self.registryfile_model.tags or []
 
