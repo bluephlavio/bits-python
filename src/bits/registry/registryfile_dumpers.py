@@ -14,7 +14,12 @@ class RegistryFileDumper(ABC):
 
 class RegistryFileMdDumper(RegistryFileDumper):
     def _dump_bit(self, bit: BitModel) -> str:
-        header = yaml.dump(bit.dict(exclude={"src"}), default_flow_style=False).strip()
+        filtered_bit = {
+            k: v
+            for k, v in bit.dict(exclude={"src"}).items()
+            if v not in [None, [], {}]
+        }
+        header = yaml.dump(filtered_bit, default_flow_style=False).strip()
         content = bit.src.strip()
         return f"{header}\n```latex\n{content}\n```"
 
@@ -22,15 +27,17 @@ class RegistryFileMdDumper(RegistryFileDumper):
         if not path.suffix == ".md":
             raise ValueError(f"Unsupported file format: {path.suffix}")
 
-        frontmatter = yaml.dump(
-            {
+        filtered_data = {
+            k: v
+            for k, v in {
                 "tags": data.tags,
                 "targets": [target.dict() for target in data.targets],
                 "constants": [constant.dict() for constant in data.constants],
                 "import": list(data.imports),
-            },
-            default_flow_style=False,
-        ).strip()
+            }.items()
+            if v not in [None, [], {}]
+        }
+        frontmatter = yaml.dump(filtered_data, default_flow_style=False).strip()
         bits_content = "\n---\n".join(self._dump_bit(bit) for bit in data.bits)
 
         content = f"---\n{frontmatter}\n---\n{bits_content}"
@@ -44,7 +51,14 @@ class RegistryFileYamlDumper(RegistryFileDumper):
         if not path.suffix in [".yml", ".yaml"]:
             raise ValueError(f"Unsupported file format: {path.suffix}")
 
-        content = yaml.dump(data.dict(), default_flow_style=False)
+        filtered_data = {
+            k: v for k, v in data.dict().items() if v not in [None, [], {}]
+        }
+        filtered_data["bits"] = [
+            {k: v for k, v in bit.items() if v not in [None, [], {}]}
+            for bit in filtered_data["bits"]
+        ]
+        content = yaml.dump(filtered_data, default_flow_style=False, sort_keys=False)
 
         with open(path, "w", encoding="utf-8") as file:
             file.write(content)
