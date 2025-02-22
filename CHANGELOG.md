@@ -1,3 +1,15 @@
+## v0.15.1 (2025-02-22)
+
+### Fix
+
+- update linting configuration to use black instead of pylint
+- update download-artifact action to version 4 in install-package action
+- format code for improved readability in registryfile.py
+- update upload-artifact action to version 4 in build-package and check-bump workflows
+- reorder attributes in RegistryDataModel and TargetModel for consistency; update YAML dump to preserve key order
+- filter out empty values in YAML dumps for registry file dumpers
+- using RegistryDataModel instance to dump a RegistryFile preserving queries
+
 ## v0.15.0 (2024-12-01)
 
 ### Feat
