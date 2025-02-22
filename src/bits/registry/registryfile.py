@@ -44,24 +44,24 @@ class RegistryFile(Registry):
             with self._load_lock:
                 self.clear_registry()
 
-                registryfile_model: RegistryDataModel = self._parser.parse(self._path)
+                self.registryfile_model: RegistryDataModel = self._parser.parse(self._path)
 
-                common_tags: List[str] = registryfile_model.tags or []
+                common_tags: List[str] = self.registryfile_model.tags or []
 
                 (
                     imported_bits,
                     imported_constants,
                     imported_targets,
-                ) = self._import_registry_data(registryfile_model.imports)
+                ) = self._import_registry_data(self.registryfile_model.imports)
 
-                self._load_bits(registryfile_model.bits, common_tags)
+                self._load_bits(self.registryfile_model.bits, common_tags)
                 self._bits.extend(imported_bits)
 
-                self._load_constants(registryfile_model.constants, common_tags)
+                self._load_constants(self.registryfile_model.constants, common_tags)
                 self._constants.extend(imported_constants)
 
                 if not as_dep:
-                    self._load_targets(registryfile_model.targets, common_tags)
+                    self._load_targets(self.registryfile_model.targets, common_tags)
                     self._targets.extend(imported_targets)
         except Exception as err:
             raise RegistryLoadError(path=self._path) from err
@@ -212,15 +212,7 @@ class RegistryFile(Registry):
 
     def dump(self, path: Path):
         dumper = RegistryFileDumperFactory.get(path)
-        bits: List[BitModel] = [bit.to_model() for bit in self.bits]
-        constants: List[ConstantModel] = [
-            constant.to_model() for constant in self.constants
-        ]
-        targets: List[TargetModel] = [target.to_model() for target in self.targets]
-        registry_data_model: RegistryDataModel = RegistryDataModel(
-            bits=bits, constants=constants, targets=targets
-        )
-        dumper.dump(registry_data_model, path)
+        dumper.dump(self.registryfile_model, path)
 
     def add_listener(self, on_event: Callable, recursive=True) -> None:
         self._watcher.add_listener(on_event)
