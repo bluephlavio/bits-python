@@ -19,7 +19,9 @@ class RegistryFileMdDumper(RegistryFileDumper):
             for k, v in bit.dict(exclude={"src"}).items()
             if v not in [None, [], {}]
         }
-        header = yaml.dump(filtered_bit, default_flow_style=False).strip()
+        header = yaml.dump(
+            filtered_bit, default_flow_style=False, sort_keys=False
+        ).strip()
         content = bit.src.strip()
         return f"{header}\n```latex\n{content}\n```"
 
@@ -37,7 +39,9 @@ class RegistryFileMdDumper(RegistryFileDumper):
             }.items()
             if v not in [None, [], {}]
         }
-        frontmatter = yaml.dump(filtered_data, default_flow_style=False).strip()
+        frontmatter = yaml.dump(
+            filtered_data, default_flow_style=False, sort_keys=False
+        ).strip()
         bits_content = "\n---\n".join(self._dump_bit(bit) for bit in data.bits)
 
         content = f"---\n{frontmatter}\n---\n{bits_content}"

@@ -10,6 +10,6 @@ from .target_model import TargetModel
 class RegistryDataModel(BaseModel):
     tags: List[str] | None = None
     imports: List[Dict[str, str]] = []
-    bits: List[BitModel] = []
-    constants: List[ConstantModel] = []
     targets: List[TargetModel] = []
+    constants: List[ConstantModel] = []
+    bits: List[BitModel] = []
