@@ -59,7 +59,7 @@ isort = "isort --profile=black --settings-path=pyproject.toml src tests"
 black = "black --config=pyproject.toml src tests"
 format = ["isort", "black"]
 pylint = "pylint --rcfile=pyproject.toml src tests"
-lint = ["pylint"]
+lint = ["black"]
 pytest = "pytest"
 test = ["pytest"]
 clean = { shell = "rm -rf .coverage .pytest_cache tests/artifacts/* dist && find . -type d -name '__pycache__' -exec rm -r {} +" }
