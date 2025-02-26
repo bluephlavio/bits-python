@@ -6,6 +6,24 @@ import yaml
 from ..models import BitModel, RegistryDataModel
 
 
+class BitsYamlDumper(yaml.Dumper):
+    def represent_data(self, data):
+        if isinstance(data, dict):
+            node = super().represent_data(data)
+
+            for key_node, value_node in node.value:
+                if key_node.value == "tags" and isinstance(
+                    value_node, yaml.SequenceNode
+                ):
+                    value_node.flow_style = True
+
+                if key_node.value == "src" and isinstance(value_node, yaml.ScalarNode):
+                    value_node.style = "|"
+
+            return node
+        return super().represent_data(data)
+
+
 class RegistryFileDumper(ABC):
     @abstractmethod
     def dump(self, data: RegistryDataModel, path: Path) -> None:
@@ -62,10 +80,15 @@ class RegistryFileYamlDumper(RegistryFileDumper):
             {k: v for k, v in bit.items() if v not in [None, [], {}]}
             for bit in filtered_data["bits"]
         ]
-        content = yaml.dump(filtered_data, default_flow_style=False, sort_keys=False)
 
         with open(path, "w", encoding="utf-8") as file:
-            file.write(content)
+            yaml.dump(
+                filtered_data,
+                file,
+                Dumper=BitsYamlDumper,
+                default_flow_style=False,
+                sort_keys=False,
+            )
 
 
 class RegistryFileDumperFactory:
