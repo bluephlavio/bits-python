@@ -1,3 +1,9 @@
+## v0.15.2 (2025-02-26)
+
+### Fix
+
+- implement custom YAML dumper to enhance yaml dumping of RegistryFile
+
 ## v0.15.1 (2025-02-22)
 
 ### Fix
