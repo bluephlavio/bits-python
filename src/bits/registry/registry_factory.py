@@ -17,27 +17,32 @@ class RegistryFactory:  # pylint: disable=too-few-public-methods
 
         if normalized_path in RegistryFactory._cache:
             registry: Registry = RegistryFactory._cache[normalized_path]
+            # Ensure cache entry is reloaded with potentially new kwargs
             registry.load(**kwargs)
             return registry
 
-        if normalized_path.is_file():
-            from .registryfile import RegistryFile
-
-            registry = RegistryFile(normalized_path, **kwargs)
-        elif normalized_path.is_dir():
+        registry_path_to_load = normalized_path
+        if normalized_path.is_dir():
             index_file = RegistryFactory.search_for_index(normalized_path)
             if index_file:
-                from .registryfile import RegistryFile
-
-                registry = RegistryFile(index_file, **kwargs)
+                registry_path_to_load = index_file
             else:
-                from .registryfolder import RegistryFolder
-
-                registry = RegistryFolder(normalized_path, **kwargs)
-        else:
+                # If it's a directory without an index file, raise error.
+                raise RegistryNotFoundError(
+                    path=normalized_path,
+                    message=f"Directory '{normalized_path}' is not a valid registry. No index file (index.md, index.yaml, index.yml) found.",
+                )
+        elif not normalized_path.is_file():
+            # If it's not a file and not a directory (or doesn't exist)
             raise RegistryNotFoundError(path=normalized_path)
 
+        # At this point, registry_path_to_load should be a file (either the original path or an index file)
+        from .registryfile import RegistryFile
+
+        registry = RegistryFile(registry_path_to_load, **kwargs)
+
         registry.load(**kwargs)
+        # Cache based on the original normalized path requested
         RegistryFactory._cache[normalized_path] = registry
         return registry
 
