@@ -11,18 +11,25 @@ from .helpers import initialize_registry, watch_for_changes
 
 app = typer.Typer()
 console = Console()
-install()
+install(suppress=[SystemExit, KeyboardInterrupt])
 
 
-def version_callback(value: bool):
+def version_callback(ctx: typer.Context, param, value: bool):
     if value:
         typer.echo(f"bits {__version__}")
-        raise typer.Exit()
+        ctx.exit()
 
 
 @app.callback()
 def common(
-    version: bool = typer.Option(None, "--version", callback=version_callback)
+    ctx: typer.Context,
+    version: bool = typer.Option(
+        False,
+        "--version",
+        callback=version_callback,
+        is_eager=True,
+        help="Show the version and exit",
+    ),
 ):  # pylint: disable=unused-argument
     pass
 
