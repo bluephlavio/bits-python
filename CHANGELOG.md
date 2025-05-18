@@ -1,3 +1,16 @@
+## v0.15.3 (2025-05-18)
+
+### Fix
+
+- manually merge changes from feature/enhanced-error-handling
+- manually merge changes from feature/enhanced-error-handling
+- improve pdflatex installation, add dependency caching and better Poetry configuration
+- Implement resilient error handling for bits build --watch command (#41)
+
+### Refactor
+
+- remove RegistryFolder and update RegistryFactory logic; enhance tests for registry retrieval
+
 ## v0.15.2 (2025-02-26)
 
 ### Fix
