@@ -1,8 +1,10 @@
-import pytest
 from pathlib import Path
+
+import pytest
+
+from bits.exceptions import RegistryNotFoundError
 from bits.registry.registry_factory import RegistryFactory
 from bits.registry.registryfile import RegistryFile
-from bits.exceptions import RegistryNotFoundError
 
 
 def test_get_registry_file(tmp_path):

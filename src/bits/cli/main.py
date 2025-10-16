@@ -12,7 +12,22 @@ from .helpers import initialize_registry, watch_for_changes
 
 
 def _supports_unicode_output(stream) -> bool:
-    """Return True if the stream can safely render unicode box characters."""
+    """Return True if the stream can safely render unicode box characters.
+
+    Only enable rich styling when output is a TTY and can render box chars.
+    This keeps CLI help plain when output is captured (e.g., in CI),
+    ensuring stable, non-ANSI output for tests.
+    """
+    # Avoid rich styling when not attached to a TTY (e.g., subprocess pipes)
+    is_tty = False
+    try:
+        is_tty = bool(getattr(stream, "isatty", lambda: False)())
+    except Exception:  # pragma: no cover - conservative fallback
+        is_tty = False
+
+    if not is_tty:
+        return False
+
     encoding = getattr(stream, "encoding", None) or "utf-8"
     try:
         "\u2500".encode(encoding)
