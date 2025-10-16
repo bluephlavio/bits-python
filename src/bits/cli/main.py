@@ -35,7 +35,7 @@ install(
 )
 
 
-def version_callback(ctx: typer.Context, param, value: bool):
+def version_callback(ctx: typer.Context, param, value: Optional[bool]):
     if value:
         typer.echo(f"bits {__version__}")
         ctx.exit()
@@ -44,8 +44,8 @@ def version_callback(ctx: typer.Context, param, value: bool):
 @app.callback()
 def common(
     ctx: typer.Context,
-    version: bool = typer.Option(
-        False,
+    version: Optional[bool] = typer.Option(
+        None,
         "--version",
         callback=version_callback,
         is_eager=True,
