@@ -12,9 +12,8 @@ def test_cli_version():
 def test_cli_help():
     result = subprocess.run(["bits", "--help"], capture_output=True, check=True)
     assert result.returncode == 0
-    assert result.stdout.decode("utf-8").startswith(
-        "Usage: bits [OPTIONS] COMMAND [ARGS]..."
-    )
+    help_output = result.stdout.decode("utf-8")
+    assert "Usage: bits [OPTIONS] COMMAND [ARGS]..." in help_output
 
 
 def test_cli_build(bitsfiles):

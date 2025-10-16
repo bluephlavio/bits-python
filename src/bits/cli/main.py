@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 from typing import Optional
 
@@ -9,20 +10,62 @@ from .. import __version__
 from ..registry import RegistryFactory, RegistryFile
 from .helpers import initialize_registry, watch_for_changes
 
-app = typer.Typer()
-console = Console()
-install()
+
+def _supports_unicode_output(stream) -> bool:
+    """Return True if the stream can safely render unicode box characters.
+
+    Only enable rich styling when output is a TTY and can render box chars.
+    This keeps CLI help plain when output is captured (e.g., in CI),
+    ensuring stable, non-ANSI output for tests.
+    """
+    # Avoid rich styling when not attached to a TTY (e.g., subprocess pipes)
+    is_tty = False
+    try:
+        is_tty = bool(getattr(stream, "isatty", lambda: False)())
+    except Exception:  # pragma: no cover - conservative fallback
+        is_tty = False
+
+    if not is_tty:
+        return False
+
+    encoding = getattr(stream, "encoding", None) or "utf-8"
+    try:
+        "\u2500".encode(encoding)
+    except Exception:  # pragma: no cover - conservative fallback
+        return False
+    return True
 
 
-def version_callback(value: bool):
+_USE_RICH_STYLING = _supports_unicode_output(sys.stdout)
+
+app = typer.Typer(
+    rich_markup_mode="rich" if _USE_RICH_STYLING else None,
+    pretty_exceptions_enable=_USE_RICH_STYLING,
+    pretty_exceptions_show_locals=False,
+)
+console = Console(legacy_windows=not _USE_RICH_STYLING)
+install(
+    suppress=[SystemExit, KeyboardInterrupt],
+    show_locals=_USE_RICH_STYLING,
+)
+
+
+def version_callback(ctx: typer.Context, param, value: Optional[bool]):
     if value:
         typer.echo(f"bits {__version__}")
-        raise typer.Exit()
+        ctx.exit()
 
 
 @app.callback()
 def common(
-    version: bool = typer.Option(None, "--version", callback=version_callback)
+    ctx: typer.Context,
+    version: Optional[bool] = typer.Option(
+        None,
+        "--version",
+        callback=version_callback,
+        is_eager=True,
+        help="Show the version and exit",
+    ),
 ):  # pylint: disable=unused-argument
     pass
 
