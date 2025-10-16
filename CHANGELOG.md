@@ -1,3 +1,13 @@
+## v0.15.4 (2025-10-16)
+
+### Fix
+
+- enhance unicode support in CLI by checking TTY status; update test imports for consistency
+- pin Click version to avoid incompatibility with Typer; update version callback to accept Optional type
+- enhance Unicode support and initialize Typer with rich styling
+- update poetry.lock and pyproject.toml for dependency versions; enhance CLI help test
+- update version callback to use context for exit handling
+
 ## v0.15.3 (2025-05-18)
 
 ### Fix
