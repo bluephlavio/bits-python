@@ -13,6 +13,7 @@ from ..constant import Constant
 from ..env import EnvironmentFactory
 from ..exceptions import RegistryLoadError, TemplateContextError, TemplateLoadError
 from ..helpers import normalize_path
+import warnings
 from ..models import (
     BitModel,
     BlocksModel,
@@ -137,6 +138,10 @@ class RegistryFile(Registry):
         }
 
         if "blocks" in data:
+            warnings.warn(
+                "context.blocks is deprecated; map to queries.blocks + compose.blocks.flatten/as",
+                DeprecationWarning,
+            )
             blocks: List[Block] = [
                 block
                 for blocks_data in data["blocks"]
@@ -145,6 +150,10 @@ class RegistryFile(Registry):
             context["blocks"] = blocks
 
         if "constants" in data:
+            warnings.warn(
+                "context.constants is deprecated; map to queries.constants + compose",
+                DeprecationWarning,
+            )
             constants: List[Constant] = [
                 constant
                 for constants_data in data["constants"]
@@ -195,16 +204,159 @@ class RegistryFile(Registry):
             data.template or config.get("DEFAULT", "template")
         )
 
+        # Prepare base context (static only). Avoid resolving legacy top-level blocks/constants here;
+        # they are handled via queries mapping below.
+        raw_context = data.context or {}
+        base_context_input = {k: v for k, v in raw_context.items() if k not in ["blocks", "constants"]}
         try:
-            context: dict = self._resolve_context(data.context)
+            context: dict = self._resolve_context(base_context_input)
         except Exception as err:
             raise TemplateContextError("Could not resolve target context.") from err
+
+        # Back-compat: map legacy context.blocks/constants into queries if present
+        queries = dict(data.queries or {})
+        compose_cfg = dict(data.compose or {})
+
+        if "blocks" in raw_context and "blocks" not in queries:
+            queries["blocks"] = raw_context["blocks"]
+            # Ensure default compose matches legacy behavior
+            c = compose_cfg.get("blocks", {})
+            c.setdefault("flatten", True)
+            c.setdefault("as", "blocks")
+            compose_cfg["blocks"] = c
+
+        if "constants" in raw_context and "constants" not in queries:
+            queries["constants"] = raw_context["constants"]
+            c = compose_cfg.get("constants", {})
+            c.setdefault("as", "constants")
+            compose_cfg["constants"] = c
+
+        # Resolve queries and compose results into context
+        if queries:
+            composed_vars = self._resolve_and_compose_queries(queries, compose_cfg)
+            context.update(composed_vars)
 
         dest: Path = self._resolve_path(data.dest or ".")
         dest = dest / f"{self._path.stem}-{name}.pdf" if dest.suffix == "" else dest
 
         target: Target = Target(template, context, dest, name=name, tags=tags)
         return target
+
+    def _resolve_and_compose_queries(self, queries: dict, compose_cfg: dict) -> dict:
+        """Resolve named queries (blocks/constants) and compose into final variables.
+
+        Supported:
+        - blocks: a dict (single sub-query) or a list of sub-queries
+        - constants: a dict (single) or list of sub-queries
+        Compose keys per query: { flatten, merge: concat|interleave, as }
+        Also supports aggregate compose entries with { from: [var1, var2], ... }.
+        """
+        results: dict = {}
+
+        def _resolve_blocks_spec(spec):
+            if isinstance(spec, list):
+                return [self._resolve_blocks(BlocksModel(**q)) for q in spec]
+            if isinstance(spec, dict):
+                return self._resolve_blocks(BlocksModel(**spec))
+            raise ValueError("Invalid blocks query spec")
+
+        def _resolve_constants_spec(spec):
+            if isinstance(spec, list):
+                return [self._resolve_constants(ConstantsModel(**q)) for q in spec]
+            if isinstance(spec, dict):
+                return self._resolve_constants(ConstantsModel(**spec))
+            raise ValueError("Invalid constants query spec")
+
+        # First pass: resolve known named queries
+        for qname, spec in queries.items():
+            if qname == "blocks":
+                results[qname] = _resolve_blocks_spec(spec)
+            elif qname == "constants":
+                results[qname] = _resolve_constants_spec(spec)
+            else:
+                # Unknown query types are ignored for now (future extension)
+                continue
+
+        # Compose per-query
+        composed: dict = {}
+
+        def _interleave(lists: List[List]):
+            out = []
+            # round-robin
+            lists_copy = [list(lst) for lst in lists]
+            while any(lists_copy):
+                for lst in lists_copy:
+                    if lst:
+                        out.append(lst.pop(0))
+            return out
+
+        for qname, res in results.items():
+            cfg = compose_cfg.get(qname, {}) if compose_cfg else {}
+            as_name = cfg.get("as", qname)
+            flatten = cfg.get("flatten", None)
+            merge = cfg.get("merge", "concat")
+
+            flat_list = None
+            if isinstance(res, list) and res and isinstance(res[0], list):
+                # list-of-lists
+                if flatten is None:
+                    warnings.warn(
+                        f"compose.{qname}.flatten not set; defaulting to true for back-compat",
+                        DeprecationWarning,
+                    )
+                    flatten = True
+                if flatten:
+                    if merge == "concat":
+                        flat_list = [item for lst in res for item in lst]
+                    elif merge == "interleave":
+                        flat_list = _interleave(res)
+                    else:
+                        raise ValueError(f"Unsupported merge mode: {merge}")
+                else:
+                    flat_list = res
+            else:
+                flat_list = res
+
+            composed[as_name] = flat_list
+
+        # Aggregate compose entries: keys with 'from'
+        for cname, cfg in compose_cfg.items():
+            if "from" in cfg:
+                sources = cfg.get("from", [])
+                src_lists = [composed.get(src) or results.get(src) for src in sources]
+                src_lists = [lst for lst in src_lists if lst is not None]
+                flatten = cfg.get("flatten", True)
+                merge = cfg.get("merge", "concat")
+                as_name = cfg.get("as", cname)
+
+                if not src_lists:
+                    continue
+
+                if flatten:
+                    if merge == "concat":
+                        agg = []
+                        for lst in src_lists:
+                            if isinstance(lst, list) and lst and isinstance(lst[0], list):
+                                agg.extend([item for sub in lst for item in sub])
+                            else:
+                                agg.extend(lst)
+                    elif merge == "interleave":
+                        # normalize to list-of-lists
+                        norm_lists = []
+                        for lst in src_lists:
+                            if isinstance(lst, list) and lst and isinstance(lst[0], list):
+                                norm_lists.extend(lst)
+                            else:
+                                norm_lists.append(list(lst))
+                        agg = _interleave(norm_lists)
+                    else:
+                        raise ValueError(f"Unsupported merge mode: {merge}")
+                else:
+                    agg = src_lists
+
+                composed[as_name] = agg
+
+        return composed
 
     def to_registry_data_model(self) -> RegistryDataModel:
         bits = [bit.to_bit_model() for bit in self.bits]
