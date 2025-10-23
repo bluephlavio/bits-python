@@ -1,0 +1,36 @@
+targets:
+  - name: t1
+    template: ./templates/test.tex.j2
+    dest: ${artifacts}
+    context:
+      title: Preset Test
+      subtitle: S
+      class_: C
+      date: D
+    queries:
+      blocks:
+        - where:
+            name: Mass of the Sun
+          preset: default
+          metadata: { pts: [4, 0, 0, 0] }
+        - where:
+            name: Mass of the Sun
+          preset: 2
+          metadata: { pts: [0, 0, 0, 4] }
+    compose:
+      blocks: { flatten: true, merge: concat, as: blocks }
+
+bits:
+  - name: Mass of the Sun
+    tags: [astronomy, gravitation]
+    author: Flavio Grandin
+    defaults:
+      formula: "M=\\frac{Fr^2}{Gm}"
+    presets:
+      - id: default
+        context: { }
+      - id: alt
+        context:
+          formula: "M=\\frac{F r^2}{G m} (alt)"
+    src: |
+      Calculate the mass of the Sun with the formula $\VAR{ formula }$!!!

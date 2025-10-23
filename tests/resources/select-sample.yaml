@@ -1,0 +1,23 @@
+targets:
+  - name: sample
+    template: ./templates/problem-set.tex.j2
+    dest: ${artifacts}
+    context: { title: Sample, subtitle: S }
+    queries:
+      blocks:
+        - where: { name: Equazione }
+          select: { sample: 2, seed: 123 }
+          metadata: { pts: [1,1,1,1] }
+    compose:
+      blocks: { flatten: true, merge: concat, as: blocks }
+
+bits:
+  - name: Equazione
+    num: 1
+    src: $x+1=0$
+  - name: Equazione
+    num: 2
+    src: $x^2+1=0$
+  - name: Equazione
+    num: 3
+    src: $x^3+1=0$

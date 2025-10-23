@@ -1,0 +1,27 @@
+targets:
+  - name: merge
+    template: ./templates/test.tex.j2
+    dest: ${artifacts}
+    context: { title: T, subtitle: S, class_: C, date: D }
+    queries:
+      blocks:
+        - where: { name: Merge }
+          with:
+            context:
+              nested: { x: 9 }
+          metadata: { pts: [1,1,1,1] }
+    compose:
+      blocks: { flatten: true, merge: concat, as: blocks }
+
+bits:
+  - name: Merge
+    defaults:
+      context:
+        a: 1
+        nested: { x: 1, y: 1 }
+    presets:
+      - id: default
+        context:
+          nested: { y: 2, z: 3 }
+    src: |
+      a=\VAR{ a } x=\VAR{ nested.x } y=\VAR{ nested.y } z=\VAR{ nested.z }

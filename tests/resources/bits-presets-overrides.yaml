@@ -1,0 +1,44 @@
+targets:
+  - name: t1
+    template: ./templates/problem-set.tex.j2
+    dest: ${artifacts}
+    context:
+      title: Overrides
+      subtitle: S
+    queries:
+      blocks:
+        - where: { name: Composer }
+          preset: default
+          metadata: { pts: [1,1,1,1] }
+        - where: { name: Composer }
+          preset: studio
+          metadata: { pts: [1,1,1,1] }
+    compose:
+      blocks: { flatten: true, merge: concat, as: blocks }
+
+bits:
+  - name: Eq
+    tags: [equazione]
+    num: 1
+    src: $x+1=0$
+
+  - name: Composer
+    defaults:
+      context: {}
+      queries:
+        blocks:
+          - where: { name: Eq }
+          - where: { name: Eq }
+    presets:
+      - id: default
+        context: {}
+        queries:
+          blocks:
+            - where: { name: Eq }
+            - where: { name: Eq }
+      - id: studio
+        overrides:
+          - path: "queries.blocks[2].where.name"
+            value: "Eq"
+    src: |
+      \BLOCK{ for b in blocks }\VAR{ b.render() } \BLOCK{ endfor }

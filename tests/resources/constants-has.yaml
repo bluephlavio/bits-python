@@ -1,0 +1,28 @@
+targets:
+  - name: ch
+    template: ./templates/test.tex.j2
+    dest: ${artifacts}
+    context:
+      title: Constants
+      subtitle: S
+      class_: C
+      date: D
+    queries:
+      constants:
+        where: { has: [name, symbol, value] }
+      blocks:
+        - where: { name: Equazione }
+          select: { indices: [1] }
+          metadata: { pts: [1,1,1,1] }
+    compose:
+      blocks: { flatten: true, merge: concat, as: blocks }
+
+constants:
+  - name: G
+    tags: [grav]
+    symbol: $G$
+    value: $\SI{6.67e-11}{\cubic\meter\per\kilogram\per\squared\second}$
+
+bits:
+  - name: Equazione
+    src: $x+1=0$

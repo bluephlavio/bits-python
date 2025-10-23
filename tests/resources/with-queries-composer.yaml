@@ -1,0 +1,29 @@
+targets:
+  - name: wq
+    template: ./templates/problem-set.tex.j2
+    dest: ${artifacts}
+    context: { title: T, subtitle: S }
+    queries:
+      blocks:
+        - where: { name: ComposerWith }
+          with:
+            queries:
+              blocks:
+                - where: { name: Eq }
+          metadata: { pts: [1,1,1,1] }
+    compose:
+      blocks: { flatten: true, merge: concat, as: blocks }
+
+bits:
+  - name: Eq
+    src: $x+1=0$
+
+  - name: ComposerWith
+    defaults:
+      context: {}
+      queries:
+        blocks:
+          - where: { name: Eq }
+          - where: { name: Eq }
+    src: |
+      \BLOCK{ for b in blocks }\VAR{ b.render() } \BLOCK{ endfor }

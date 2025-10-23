@@ -18,6 +18,7 @@ class Bit(Element):
         kind: str | None = None,
         level: int | None = None,
         defaults: dict | None = None,
+        presets: list | None = None,
         **kwargs,
     ):
         super().__init__(
@@ -27,6 +28,7 @@ class Bit(Element):
         self.src: str = src
 
         self.defaults: dict = defaults or {}
+        self.presets: list = presets or []
 
         try:
             self.template: Template = EnvironmentFactory.get().from_string(self.src)
@@ -67,5 +69,6 @@ class Bit(Element):
             kind=self.kind,
             level=self.level,
             defaults=self.defaults,
+            presets=self.presets,
             src=self.src,
         )

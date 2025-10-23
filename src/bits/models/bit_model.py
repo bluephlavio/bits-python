@@ -11,4 +11,5 @@ class BitModel(BaseModel):
     level: int | None = None
     kind: str | None = None
     defaults: Dict[str, Any] = {}
+    presets: List[Dict[str, Any]] = []
     src: str = Field(..., alias="src")

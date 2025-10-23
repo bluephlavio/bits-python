@@ -11,3 +11,19 @@ class BitsQueryModel(BaseModel):  # pylint: disable=too-few-public-methods
     author: str | None = None
     kind: str | None = None
     level: int | None = None
+
+
+class WhereBitsModel(BitsQueryModel):  # pylint: disable=too-few-public-methods
+    # Additional predicates
+    has: List[str] | None = None
+    missing: List[str] | None = None
+
+
+class SelectModel(BaseModel):  # pylint: disable=too-few-public-methods
+    indices: List[int] | None = None  # 1-based
+    k: int | None = None
+    limit: int | None = None
+    offset: int | None = None
+    shuffle: bool | None = None
+    seed: int | None = None
+    sample: int | None = None
