@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bits"
-version = "0.15.4"
+version = "0.16.0"
 description = "A tool to maintain a collection of latex bits and insert them into a latex template."
 authors = ["Flavio Grandin <flavio.grandin@gmail.com>"]
 packages = [{ include = "bits", from = "src" }]
@@ -70,7 +70,7 @@ clean = { shell = "rm -rf .coverage .pytest_cache tests/artifacts/* dist && find
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.15.4"
+version = "0.16.0"
 tag_format = "v$version"
 bump_message = "build: version $current_version → $new_version"
 update_changelog_on_bump = true

@@ -1,3 +1,10 @@
+## v0.16.0 (2025-10-23)
+
+### Feat
+
+- Enhance Bit model with presets support and update related models
+- add migration notes and update TargetModel to support queries and compose options; include tests and example YAML
+
 ## v0.15.4 (2025-10-16)
 
 ### Fix
