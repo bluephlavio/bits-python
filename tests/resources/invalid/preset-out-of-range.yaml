@@ -1,0 +1,23 @@
+targets:
+  - name: bad-index
+    template: ./templates/test.tex.j2
+    dest: ${artifacts}
+    context: { title: T, subtitle: S, class_: C, date: D }
+    queries:
+      blocks:
+        - where: { name: P }
+          preset: 3
+          metadata: { pts: [1,1,1,1] }
+    compose:
+      blocks: { flatten: true, merge: concat, as: blocks }
+
+bits:
+  - name: P
+    defaults:
+      context: { a: 1 }
+    presets:
+      - id: default
+        context: { a: 2 }
+      - id: alt
+        context: { a: 3 }
+    src: $x+1=0$

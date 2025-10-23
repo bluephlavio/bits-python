@@ -62,13 +62,19 @@ Data Flow
    - Constants: `ConstantModel` → `Constant`.
    - Targets: `TargetModel` resolved into `Target` with template lookup.
 
-4) Context resolution
-   - `RegistryFile._resolve_context` builds a context dict and expands:
-     - `blocks`: list of `Block` resolved from queries over local/remote
-       registries (supports `registry:` to import).
-     - `constants`: materialized from constants queries.
-   - Queries use `collections.Collection.query()` matching `id_`, `name`,
-     `tags`, `num`, `author`, `kind`, `level`.
+4) Target resolution and queries
+   - Targets carry:
+     - `context`: static variables only (titles, class, date, options).
+     - `queries`: dynamic inputs (named queries like `blocks`, `constants`).
+     - `compose`: how to assemble list-of-lists and expose final names.
+   - Named queries support:
+     - `registry` (optional): resolve from another registry file.
+     - `where`: regex fields (`name`, `tags`, `num`, `author`, `kind`, `level`) plus `has`/`missing`.
+     - `select`: `{ indices (1-based), k|limit, offset, shuffle, sample, seed }`.
+     - `preset`: bit preset selector (id or 1-based index; numeric strings try id then index).
+     - `with`: structured overlay: `{ context: {...}, queries: {...} }`.
+   - Compose (per named or aggregate): `{ flatten, merge: concat|interleave, dedupe: by:name|by:id|by:hash, shuffle, seed, limit, as }`.
+   - Legacy `context.blocks`/`context.constants` are mapped to `queries` with a deprecation warning and default compose (`flatten: true`, `as: blocks|constants`).
 
 5) Render
    - `Target.render_tex_code()` renders Jinja with LaTeX delimiters.

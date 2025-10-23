@@ -1,0 +1,23 @@
+targets:
+  - name: t1
+    template: ./templates/test.tex.j2
+    dest: ${artifacts}
+    context:
+      title: Preset Bad Override
+    queries:
+      blocks:
+        - where: { name: A }
+          preset: oops
+    compose:
+      blocks: { flatten: true, merge: concat, as: blocks }
+
+bits:
+  - name: A
+    defaults:
+      context: {}
+    presets:
+      - id: oops
+        overrides:
+          - path: "queries.blocks[1].where.name"  # queries missing -> error
+            value: "X"
+    src: $x+1=0$

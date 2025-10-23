@@ -1,0 +1,18 @@
+targets:
+  - name: bad
+    template: ./templates/test.tex.j2
+    dest: ${artifacts}
+    context:
+      title: T
+      subtitle: S
+    queries:
+      blocks:
+        - where:
+            name: Mass of the Sun
+          with: { m: 1 }   # invalid: free keys in with
+    compose:
+      blocks: { flatten: true, merge: concat, as: blocks }
+
+bits:
+  - name: Mass of the Sun
+    src: $x+1=0$

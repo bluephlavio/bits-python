@@ -12,9 +12,20 @@ def resources():
 
 @pytest.fixture(scope="session")
 def bitsfiles(resources):  # pylint: disable=redefined-outer-name
+    """Return all valid registry files for e2e CLI build.
+
+    - Recurses under tests/resources
+    - Skips anything under an 'invalid/' directory
+    - Picks .md, .yaml, .yml files
+    """
     patterns = ["*.md", "*.yaml", "*.yml"]
-    return list(
-        itertools.chain.from_iterable(
-            (file.resolve() for file in resources.glob(pattern)) for pattern in patterns
-        )
-    )
+    files = []
+    for pattern in patterns:
+        for file in resources.rglob(pattern):
+            # Exclude invalid fixture folders
+            if "/invalid/" in str(file.as_posix()):
+                continue
+            files.append(file.resolve())
+    # Deterministic order for stable CI
+    files = sorted(set(files))
+    return files

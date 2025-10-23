@@ -1,0 +1,17 @@
+targets:
+  - name: dedupe
+    template: ./templates/problem-set.tex.j2
+    dest: ${artifacts}
+    context: { title: Dedupe, subtitle: S }
+    queries:
+      blocks:
+        - where: { name: Eq }
+          metadata: { pts: [1,1,1,1] }
+        - where: { name: Eq }
+          metadata: { pts: [1,1,1,1] }
+    compose:
+      blocks: { flatten: true, merge: concat, dedupe: by:name, as: blocks }
+
+bits:
+  - name: Eq
+    src: $x+1=0$
