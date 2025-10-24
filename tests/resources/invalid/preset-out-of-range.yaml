@@ -16,8 +16,8 @@ bits:
     defaults:
       context: { a: 1 }
     presets:
-      - id: default
+      - name: default
         context: { a: 2 }
-      - id: alt
+      - name: alt
         context: { a: 3 }
     src: $x+1=0$

@@ -264,7 +264,19 @@ def print_render_summary(registry: Registry, console: Console):
     console.print(panel)
 
 
-def initialize_registry(path: Path, console: Console, watch: bool, output_tex: bool):
+def initialize_registry(
+    path: Path,
+    console: Console,
+    watch: bool,
+    output_tex: bool,
+    *,
+    pdf: bool | None = None,
+    tex: bool | None = None,
+    both: bool = False,
+    build_dir: Path | None = None,
+    intermediates_dir: Path | None = None,
+    keep_intermediates: str = "none",
+):
     """
     Initialize a registry from a path and render its targets.
 
@@ -302,7 +314,15 @@ def initialize_registry(path: Path, console: Console, watch: bool, output_tex: b
             # Try to render the registry
             console.rule("[bold]Build Started")
             console.print("[bold green]Rendering...[/bold green]")
-            registry.render(output_tex=output_tex)
+            registry.render(
+                output_tex=output_tex,
+                pdf=pdf,
+                tex=tex,
+                both=both,
+                build_dir=build_dir,
+                intermediates_dir=intermediates_dir,
+                keep_intermediates=keep_intermediates,
+            )
             console.print("[bold green]Render complete.[/bold green]")
             print_render_summary(registry, console)
             console.rule("[bold]Build Completed")
@@ -380,7 +400,15 @@ def watch_for_changes(registry: Registry, console: Console, output_tex: bool):
 
             # Try to load and render the registry
             registry.load(as_dep=False)
-            registry.render(output_tex=output_tex)
+            registry.render(
+                output_tex=output_tex,
+                pdf=pdf,
+                tex=tex,
+                both=both,
+                build_dir=build_dir,
+                intermediates_dir=intermediates_dir,
+                keep_intermediates=keep_intermediates,
+            )
 
             console.print("[bold green]Re-render complete.[/bold green]")
             print_render_summary(registry, console)

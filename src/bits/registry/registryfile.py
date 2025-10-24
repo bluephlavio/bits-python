@@ -263,16 +263,28 @@ class RegistryFile(Registry):
         presets = getattr(bit, "presets", []) or []
         if not presets:
             return None
-        # Try id first when selector is str
+        # Prefer matching by user-visible label 'name' (new schema)
         if isinstance(selector, str):
             for p in presets:
-                if p.get("id") == selector:
+                if p.get("name") == selector:
                     return p
-            # If numeric string and id not found, try as index
+            # Legacy compatibility: support 'id' with deprecation warning
+            for p in presets:
+                if p.get("id") == selector:
+                    import warnings
+
+                    warnings.warn(
+                        "Preset key 'id' is deprecated; use 'name' instead.",
+                        DeprecationWarning,
+                    )
+                    return p
+            # If numeric string and not found by label, try as index
             try:
                 selector = int(selector)
             except ValueError:
-                raise ValueError(f"Preset '{selector}' not found for bit '{bit.name}'")
+                raise ValueError(
+                    f"Preset '{selector}' not found for bit '{getattr(bit, 'name', None)}'"
+                )
         # Index path (1-based)
         if isinstance(selector, int):
             idx = selector - 1
