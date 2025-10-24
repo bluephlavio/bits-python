@@ -62,6 +62,30 @@ class Target(Element):
         tex_code: str = self.template.render(**self.context)
         return tex_code
 
-    def render(self, output_tex: bool = False) -> None:
+    def render(
+        self,
+        output_tex: bool = False,
+        *,
+        pdf: bool | None = None,
+        tex: bool | None = None,
+        both: bool = False,
+        build_dir: Path | None = None,
+        intermediates_dir: Path | None = None,
+        keep_intermediates: str = "none",
+    ) -> None:
         tex_code: str = self.render_tex_code()
-        Renderer.render(tex_code, self.dest, output_tex)
+        # Determine modes
+        do_pdf = bool(both or (pdf is True and not output_tex))
+        do_tex = bool(output_tex or tex or both)
+
+        if do_tex:
+            Renderer.render(tex_code, self.dest, True)
+        if do_pdf:
+            Renderer.render(
+                tex_code,
+                self.dest,
+                False,
+                build_dir=build_dir,
+                intermediates_dir=intermediates_dir,
+                keep_intermediates=keep_intermediates,
+            )

@@ -20,7 +20,7 @@ def test_renderer_cache():
     dest = Path("test.pdf")
 
     # Mock the subprocess.check_call to avoid actually running pdflatex
-    with patch("subprocess.check_call"), patch("shutil.move"), patch(
+    with patch("subprocess.check_call"), patch("shutil.copy"), patch(
         "bits.renderer.tmpdir",
         return_value=MagicMock(
             __enter__=MagicMock(return_value=Path(".")), __exit__=MagicMock()
