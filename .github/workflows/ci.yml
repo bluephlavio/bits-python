@@ -89,8 +89,7 @@ jobs:
     - name: Install the package
       uses: ./.github/actions/install-package
 
-    - name: Create .bitsrc file
-      uses: ./.github/actions/create-bitsrc
+    # BITS_CONFIG overrides config location for tests
 
     - name: Test
       uses: ./.github/actions/test

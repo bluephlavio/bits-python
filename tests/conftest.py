@@ -1,4 +1,5 @@
 import itertools
+import os
 from pathlib import Path
 
 import pytest
@@ -29,3 +30,8 @@ def bitsfiles(resources):  # pylint: disable=redefined-outer-name
     # Deterministic order for stable CI
     files = sorted(set(files))
     return files
+
+
+# Ensure tests run without a repo-level .bitsrc by pointing to tests/resources/.bitsrc
+BITS_CONFIG_FILE = (Path(__file__).parent / "resources" / ".bitsrc").resolve()
+os.environ.setdefault("BITS_CONFIG", str(BITS_CONFIG_FILE))
