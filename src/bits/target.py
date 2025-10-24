@@ -72,18 +72,33 @@ class Target(Element):
         build_dir: Path | None = None,
         intermediates_dir: Path | None = None,
         keep_intermediates: str = "none",
+        unique_strategy: str | None = None,
     ) -> None:
         tex_code: str = self.render_tex_code()
         # Determine modes
         do_pdf = bool(both or (pdf is True and not output_tex))
         do_tex = bool(output_tex or tex or both)
 
+        # Compute final destination (supports unique naming)
+        final_dest = self.dest
+        if unique_strategy in ("uuid", "timestamped"):
+            import uuid
+            import datetime as _dt
+
+            stem = final_dest.stem
+            if unique_strategy == "uuid":
+                suffix = uuid.uuid4().hex[:8]
+            else:
+                suffix = _dt.datetime.now().strftime("%Y%m%d-%H%M%S")
+            new_name = f"{stem}__{suffix}{final_dest.suffix}"
+            final_dest = final_dest.with_name(new_name)
+
         if do_tex:
-            Renderer.render(tex_code, self.dest, True)
+            Renderer.render(tex_code, final_dest, True)
         if do_pdf:
             Renderer.render(
                 tex_code,
-                self.dest,
+                final_dest,
                 False,
                 build_dir=build_dir,
                 intermediates_dir=intermediates_dir,

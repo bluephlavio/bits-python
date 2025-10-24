@@ -12,6 +12,7 @@ from .helpers import initialize_registry, watch_for_changes
 from ..env import EnvironmentFactory
 from ..renderer import Renderer
 from ..helpers import write as _write
+from ..config import config
 from ..registry.registryfile import RegistryFile as _RegistryFile
 from ..block import Block
 from ..helpers import normalize_path
@@ -94,6 +95,11 @@ def render(
     intermediates_dir: Optional[Path] = typer.Option(None, help="Intermediates dir"),
     build_dir: Optional[Path] = typer.Option(None, help="Temporary build dir"),
     target: Optional[str] = typer.Option(None, help="Build a single target by name"),
+    unique: Optional[str] = typer.Option(
+        None,
+        "--unique",
+        help="Use unique naming for outputs: uuid|timestamped",
+    ),
     no_plugins: bool = typer.Option(
         False,
         "--no-plugins",
@@ -112,9 +118,13 @@ def render(
         compact_target = t.strip('"') if t else None
 
     # Compute output modes
+    # Compute output modes with config fallbacks when all flags unset
+    cfg_pdf = config.getboolean("output", "pdf", fallback=True)
+    cfg_tex = config.getboolean("output", "tex", fallback=False)
     do_both = bool(both)
-    do_tex = bool(tex or (not pdf and output_tex))
-    do_pdf = bool(pdf or (not do_tex and not do_both))
+    any_set = any([pdf, tex, both, output_tex])
+    do_tex = bool(tex or (not any_set and cfg_tex) or output_tex)
+    do_pdf = bool(pdf or (not any_set and cfg_pdf and not do_tex and not do_both))
 
     EnvironmentFactory.enable_plugins(not no_plugins)
 
@@ -160,6 +170,7 @@ def render(
         build_dir=build_dir,
         intermediates_dir=intermediates_dir,
         keep_intermediates=keep_intermediates,
+        unique_strategy=unique,
     )
 
     if watch:
@@ -241,10 +252,11 @@ def _parse_preview_spec(spec: str):
 @app.command(name="preview")
 def preview(
     spec: str = typer.Argument(..., help="Preview spec: file[Bit#num:preset] or file"),
-    out: Path = typer.Option(Path(".bitsout/preview"), "--out"),
+    out: Optional[Path] = typer.Option(None, "--out"),
     pdf: bool = typer.Option(False, "--pdf"),
-    tex: bool = typer.Option(True, "--tex"),
+    tex: bool = typer.Option(False, "--tex"),
     both: bool = typer.Option(False, "--both"),
+    naming: Optional[str] = typer.Option(None, help="readable|uuid|timestamped"),
     no_plugins: bool = typer.Option(
         False,
         "--no-plugins",
@@ -258,15 +270,24 @@ def preview(
     reg_path = Path(sel["path"]).resolve()
     reg = RegistryFactory.get(reg_path)
 
-    # Determine output format
-    # Default to config values when nothing set
+    # Determine output format w/ config defaults
+    preview_out = out or Path(config.get("preview", "out_dir", fallback=".bitsout/preview"))
+    cfg_pdf = config.getboolean("preview", "pdf", fallback=False)
+    cfg_tex = config.getboolean("preview", "tex", fallback=True)
+    cfg_naming = config.get("preview", "naming", fallback="readable")
+    naming = naming or cfg_naming
+    if not any([pdf, tex, both]):
+        pdf = cfg_pdf
+        tex = cfg_tex
     do_pdf = pdf or both
     do_tex = tex or both or not do_pdf
 
     # Select template for preview
     pkg_templates = Path(__file__).resolve().parent.parent / "config" / "templates"
-    bitsfile_tpl = pkg_templates / "preview.tex.j2"
-    bit_tpl = pkg_templates / "bit-preview.tex.j2"
+    bitsfile_tpl_path = config.get("preview.templates", "bitsfile", fallback=str(pkg_templates / "preview.tex.j2"))
+    bit_tpl_path = config.get("preview.templates", "bit", fallback=str(pkg_templates / "bit-preview.tex.j2"))
+    bitsfile_tpl = Path(bitsfile_tpl_path)
+    bit_tpl = Path(bit_tpl_path)
 
     if sel["name"]:
         # Single bit preview
@@ -310,8 +331,13 @@ def preview(
         tpl = env.get_template(bit_tpl.name)
         tex_code = tpl.render(bit=block)
 
-        out.mkdir(parents=True, exist_ok=True)
-        dest = out / f"{base}.pdf"
+        # Apply naming strategy
+        if naming in ("uuid", "timestamped"):
+            import uuid, datetime as _dt
+            suffix = uuid.uuid4().hex[:8] if naming == "uuid" else _dt.datetime.now().strftime("%Y%m%d-%H%M%S")
+            base = f"{base}__{suffix}"
+        preview_out.mkdir(parents=True, exist_ok=True)
+        dest = preview_out / f"{base}.pdf"
         if do_tex:
             # Always write .tex for predictable preview
             _write(tex_code, dest.with_suffix('.tex'))
@@ -328,8 +354,12 @@ def preview(
     tpl = env.get_template(bitsfile_tpl.name)
     tex_code = tpl.render(questions=questions)
 
-    out.mkdir(parents=True, exist_ok=True)
-    dest = out / f"{base}.pdf"
+    if naming in ("uuid", "timestamped"):
+        import uuid, datetime as _dt
+        suffix = uuid.uuid4().hex[:8] if naming == "uuid" else _dt.datetime.now().strftime("%Y%m%d-%H%M%S")
+        base = f"{base}__{suffix}"
+    preview_out.mkdir(parents=True, exist_ok=True)
+    dest = preview_out / f"{base}.pdf"
     if do_tex:
         _write(tex_code, dest.with_suffix('.tex'))
     if do_pdf:
@@ -349,3 +379,16 @@ def convert(
 
     registryfile: RegistryFile = RegistryFactory.get(src)
     registryfile.dump(out)
+
+
+@app.command(name="init-config")
+def init_config():
+    """Copy packaged defaults into ~/.bits (on demand)."""
+    import shutil as _sh
+    from ..config import GLOBAL_BITS_CONFIG_DIR, GLOBAL_BITS_CONFIG_DIR_SRC
+
+    GLOBAL_BITS_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    _sh.copytree(GLOBAL_BITS_CONFIG_DIR_SRC, GLOBAL_BITS_CONFIG_DIR, dirs_exist_ok=True)
+    console.print(
+        f"[green]Installed defaults to[/green] [bold]{GLOBAL_BITS_CONFIG_DIR}[/bold]"
+    )

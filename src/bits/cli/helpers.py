@@ -276,6 +276,7 @@ def initialize_registry(
     build_dir: Path | None = None,
     intermediates_dir: Path | None = None,
     keep_intermediates: str = "none",
+    unique_strategy: str | None = None,
 ):
     """
     Initialize a registry from a path and render its targets.
@@ -322,6 +323,7 @@ def initialize_registry(
                 build_dir=build_dir,
                 intermediates_dir=intermediates_dir,
                 keep_intermediates=keep_intermediates,
+                unique_strategy=unique_strategy,
             )
             console.print("[bold green]Render complete.[/bold green]")
             print_render_summary(registry, console)
@@ -408,6 +410,7 @@ def watch_for_changes(registry: Registry, console: Console, output_tex: bool):
                 build_dir=build_dir,
                 intermediates_dir=intermediates_dir,
                 keep_intermediates=keep_intermediates,
+                unique_strategy=unique_strategy,
             )
 
             console.print("[bold green]Re-render complete.[/bold green]")
