@@ -41,4 +41,3 @@ def test_jinja_plugin_missing_file_is_ignored():
     env = EnvironmentFactory.get()
     # Missing plugin should not raise, and built-ins still available
     assert "pick" in env.filters
-

@@ -98,7 +98,11 @@ class EnvironmentFactory:
 
         # Hash plugin list for cache segregation
         try:
-            plugin_list = [str(p) for p in cls._get_plugins_list()] if cls._plugins_enabled else []
+            plugin_list = (
+                [str(p) for p in cls._get_plugins_list()]
+                if cls._plugins_enabled
+                else []
+            )
             plugin_key = f"plugins:{int(cls._plugins_enabled)}|{','.join(plugin_list)}"
         except Exception:
             plugin_key = f"plugins:{int(cls._plugins_enabled)}"

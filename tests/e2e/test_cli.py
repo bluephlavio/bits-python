@@ -39,7 +39,9 @@ def test_cli_build_single_target(bitsfiles):
     for bitsfile in bitsfiles:
         if bitsfile.name == "bits-presets.yaml":
             target_spec = f"{bitsfile}::t1"
-            result = runner.invoke(app, ["build", target_spec, "--tex"], prog_name="bits")
+            result = runner.invoke(
+                app, ["build", target_spec, "--tex"], prog_name="bits"
+            )
             assert result.exit_code == 0
             break
 
@@ -52,7 +54,11 @@ def test_cli_build_pdf_minimal(resources):
         with tempfile.TemporaryDirectory() as td:
             tex = Path(td) / "t.tex"
             tex.write_text("\\documentclass{article}\\begin{document}x\\end{document}")
-            proc = subprocess.run(["pdflatex", "-interaction=nonstopmode", tex.name], cwd=td, capture_output=True)
+            proc = subprocess.run(
+                ["pdflatex", "-interaction=nonstopmode", tex.name],
+                cwd=td,
+                capture_output=True,
+            )
             return proc.returncode == 0 and (Path(td) / "t.pdf").exists()
 
     if not _can_compile():
@@ -79,7 +85,11 @@ def test_cli_build_pdf_presets(resources):
         with tempfile.TemporaryDirectory() as td:
             tex = Path(td) / "t.tex"
             tex.write_text("\\documentclass{article}\\begin{document}x\\end{document}")
-            proc = subprocess.run(["pdflatex", "-interaction=nonstopmode", tex.name], cwd=td, capture_output=True)
+            proc = subprocess.run(
+                ["pdflatex", "-interaction=nonstopmode", tex.name],
+                cwd=td,
+                capture_output=True,
+            )
             return proc.returncode == 0 and (Path(td) / "t.pdf").exists()
 
     if not _can_compile():

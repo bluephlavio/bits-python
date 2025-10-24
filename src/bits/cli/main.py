@@ -213,7 +213,13 @@ def _parse_preview_spec(spec: str):
             name = inner
         name = name.strip() if name else None
         preset = preset.strip() if isinstance(preset, str) else preset
-        return {"path": path, "name": name or None, "num": num, "preset": preset, "idx": idx}
+        return {
+            "path": path,
+            "name": name or None,
+            "num": num,
+            "preset": preset,
+            "idx": idx,
+        }
 
     # Colon form: file.yml:"Name"#2:default or file.yml:Name#2:3
     # Handle target form '::' elsewhere (not supported here)
@@ -227,24 +233,30 @@ def _parse_preview_spec(spec: str):
                 rest = m.group(2)
         else:
             # Unquoted up to # or :
-            m = re.match(r'^([^#:]+)(.*)$', rest)
+            m = re.match(r"^([^#:]+)(.*)$", rest)
             if m:
                 name = m.group(1)
                 rest = m.group(2)
         if rest:
-            mnum = re.match(r'^#(\d+)(.*)$', rest)
+            mnum = re.match(r"^#(\d+)(.*)$", rest)
             if mnum:
                 num = int(mnum.group(1))
                 rest = mnum.group(2)
         # Optional @idx
         if rest and rest.startswith("@"):
-            midx = re.match(r'^@(\d+)(.*)$', rest)
+            midx = re.match(r"^@(\d+)(.*)$", rest)
             if midx:
                 idx = int(midx.group(1))
                 rest = midx.group(2)
         if rest.startswith(":"):
             preset = rest[1:] if len(rest) > 1 else None
-        return {"path": path, "name": (name or "").strip() or None, "num": num, "preset": preset, "idx": idx}
+        return {
+            "path": path,
+            "name": (name or "").strip() or None,
+            "num": num,
+            "preset": preset,
+            "idx": idx,
+        }
 
     return {"path": path, "name": None, "num": None, "preset": None, "idx": None}
 
@@ -271,7 +283,9 @@ def preview(
     reg = RegistryFactory.get(reg_path)
 
     # Determine output format w/ config defaults
-    preview_out = out or Path(config.get("preview", "out_dir", fallback=".bitsout/preview"))
+    preview_out = out or Path(
+        config.get("preview", "out_dir", fallback=".bitsout/preview")
+    )
     cfg_pdf = config.getboolean("preview", "pdf", fallback=False)
     cfg_tex = config.getboolean("preview", "tex", fallback=True)
     cfg_naming = config.get("preview", "naming", fallback="readable")
@@ -284,8 +298,12 @@ def preview(
 
     # Select template for preview
     pkg_templates = Path(__file__).resolve().parent.parent / "config" / "templates"
-    bitsfile_tpl_path = config.get("preview.templates", "bitsfile", fallback=str(pkg_templates / "preview.tex.j2"))
-    bit_tpl_path = config.get("preview.templates", "bit", fallback=str(pkg_templates / "bit-preview.tex.j2"))
+    bitsfile_tpl_path = config.get(
+        "preview.templates", "bitsfile", fallback=str(pkg_templates / "preview.tex.j2")
+    )
+    bit_tpl_path = config.get(
+        "preview.templates", "bit", fallback=str(pkg_templates / "bit-preview.tex.j2")
+    )
     bitsfile_tpl = Path(bitsfile_tpl_path)
     bit_tpl = Path(bit_tpl_path)
 
@@ -306,7 +324,9 @@ def preview(
         ctx = getattr(bit, "defaults", {})
         try:
             if isinstance(reg, _RegistryFile):
-                overlay = reg._preset_context(bit, sel["preset"])  # pylint: disable=protected-access
+                overlay = reg._preset_context(
+                    bit, sel["preset"]
+                )  # pylint: disable=protected-access
                 ctx = {**ctx, **overlay}
         except Exception as err:
             raise typer.BadParameter(f"Error resolving preset context: {err}")
@@ -334,13 +354,18 @@ def preview(
         # Apply naming strategy
         if naming in ("uuid", "timestamped"):
             import uuid, datetime as _dt
-            suffix = uuid.uuid4().hex[:8] if naming == "uuid" else _dt.datetime.now().strftime("%Y%m%d-%H%M%S")
+
+            suffix = (
+                uuid.uuid4().hex[:8]
+                if naming == "uuid"
+                else _dt.datetime.now().strftime("%Y%m%d-%H%M%S")
+            )
             base = f"{base}__{suffix}"
         preview_out.mkdir(parents=True, exist_ok=True)
         dest = preview_out / f"{base}.pdf"
         if do_tex:
             # Always write .tex for predictable preview
-            _write(tex_code, dest.with_suffix('.tex'))
+            _write(tex_code, dest.with_suffix(".tex"))
         if do_pdf:
             Renderer.render(tex_code, dest, output_tex=False)
         return
@@ -356,12 +381,17 @@ def preview(
 
     if naming in ("uuid", "timestamped"):
         import uuid, datetime as _dt
-        suffix = uuid.uuid4().hex[:8] if naming == "uuid" else _dt.datetime.now().strftime("%Y%m%d-%H%M%S")
+
+        suffix = (
+            uuid.uuid4().hex[:8]
+            if naming == "uuid"
+            else _dt.datetime.now().strftime("%Y%m%d-%H%M%S")
+        )
         base = f"{base}__{suffix}"
     preview_out.mkdir(parents=True, exist_ok=True)
     dest = preview_out / f"{base}.pdf"
     if do_tex:
-        _write(tex_code, dest.with_suffix('.tex'))
+        _write(tex_code, dest.with_suffix(".tex"))
     if do_pdf:
         Renderer.render(tex_code, dest, output_tex=False)
 

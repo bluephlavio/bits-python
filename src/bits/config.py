@@ -48,9 +48,7 @@ if ENV_CONFIG_FILE:
 LOCAL_BITS_CONFIG_FILE = Path(".bitsrc")
 if LOCAL_BITS_CONFIG_FILE.exists():
     try:
-        local_config = configparser.ConfigParser(
-            interpolation=ExtendedInterpolation()
-        )
+        local_config = configparser.ConfigParser(interpolation=ExtendedInterpolation())
         local_config.read(LOCAL_BITS_CONFIG_FILE)
 
         for section in local_config.sections():

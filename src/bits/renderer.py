@@ -96,7 +96,10 @@ class Renderer:
                     preserved_log.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy(str(log_file), str(preserved_log))
 
-                if keep_intermediates in ("errors", "all") and intermediates_dir is not None:
+                if (
+                    keep_intermediates in ("errors", "all")
+                    and intermediates_dir is not None
+                ):
                     _copy_intermediates(wd_path, Path(intermediates_dir))
 
                 raise LatexRenderError(

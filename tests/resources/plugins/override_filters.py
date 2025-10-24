@@ -4,4 +4,3 @@ def register(env):
         return ["OVERRIDE"]
 
     env.filters["pick"] = pick
-

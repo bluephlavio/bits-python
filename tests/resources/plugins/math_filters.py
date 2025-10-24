@@ -3,4 +3,3 @@ def register(env):
         return x * 2
 
     env.filters["double"] = double
-
