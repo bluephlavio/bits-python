@@ -6,8 +6,44 @@ import shutil
 import pytest
 import subprocess
 import tempfile
+import sys
 
 from bits.cli.main import app
+from bits.config import config
+
+
+def _debug_env() -> str:
+    lines = []
+    lines.append(f"python: {sys.version.split()[0]}")
+    lines.append(f"cwd: {Path.cwd()}")
+    lines.append(f"CI: {os.environ.get('CI')}")
+    lines.append(f"BITS_CONFIG: {os.environ.get('BITS_CONFIG')}")
+    lines.append(f"PATH has pdflatex: {shutil.which('pdflatex')}")
+    # pdflatex version (first line)
+    try:
+        out = subprocess.run(["pdflatex", "--version"], capture_output=True, text=True)
+        lines.append(f"pdflatex --version rc={out.returncode} -> {out.stdout.splitlines()[0] if out.stdout else out.stderr.splitlines()[0] if out.stderr else ''}")
+    except Exception as e:  # pragma: no cover
+        lines.append(f"pdflatex --version error: {e}")
+    # Config variables
+    try:
+        artifacts_dir = config.get("variables", "artifacts")
+        templates_dir = config.get("variables", "templates")
+    except Exception:
+        artifacts_dir = "<missing>"
+        templates_dir = "<missing>"
+    lines.append(f"config.variables.artifacts: {artifacts_dir}")
+    lines.append(f"config.variables.templates: {templates_dir}")
+    # List artifact dir contents (pdf/tex)
+    try:
+        adir = Path(artifacts_dir)
+        pdfs = list(adir.rglob("*.pdf"))
+        texs = list(adir.rglob("*.tex"))
+        lines.append(f"artifacts pdfs: {pdfs}")
+        lines.append(f"artifacts texs: {texs}")
+    except Exception as e:  # pragma: no cover
+        lines.append(f"artifacts listing error: {e}")
+    return "\n".join(lines)
 from bits.config import config
 
 
@@ -31,6 +67,9 @@ def test_cli_build(bitsfiles):
     runner = CliRunner()
     for bitsfile in bitsfiles:
         result = runner.invoke(app, ["build", str(bitsfile), "--tex"], prog_name="bits")
+        if result.exit_code != 0:
+            print("CLI output (build --tex)\n", result.output)
+            print("ENV DEBUG:\n", _debug_env())
         assert result.exit_code == 0
 
 
@@ -43,6 +82,9 @@ def test_cli_build_single_target(bitsfiles):
             result = runner.invoke(
                 app, ["build", target_spec, "--tex"], prog_name="bits"
             )
+            if result.exit_code != 0:
+                print("CLI output (build target --tex)\n", result.output)
+                print("ENV DEBUG:\n", _debug_env())
             assert result.exit_code == 0
             break
 
@@ -67,6 +109,7 @@ def test_cli_build_pdf_minimal(resources):
             return proc.returncode == 0 and (Path(td) / "t.pdf").exists()
 
     if not _can_compile():
+        print("pdflatex probe failed. ENV DEBUG:\n", _debug_env())
         pytest.skip("pdflatex not functional in environment")
     runner = CliRunner()
     path = resources / "minimal-pdf.yaml"
@@ -80,7 +123,7 @@ def test_cli_build_pdf_minimal(resources):
         if os.environ.get("CI"):
             print("CLI output:\n", result.output)
             print("Looked for:", expected_pdf)
-            print("Artifacts dir contents:", list(artifacts_dir.glob("*.pdf")))
+            print("ENV DEBUG:\n", _debug_env())
             assert expected_pdf.exists()
         else:
             pytest.skip("PDF not generated in local env")
@@ -105,6 +148,7 @@ def test_cli_build_pdf_presets(resources):
             return proc.returncode == 0 and (Path(td) / "t.pdf").exists()
 
     if not _can_compile():
+        print("pdflatex probe failed. ENV DEBUG:\n", _debug_env())
         pytest.skip("pdflatex not functional in environment")
 
     runner = CliRunner()
@@ -117,7 +161,7 @@ def test_cli_build_pdf_presets(resources):
         if os.environ.get("CI"):
             print("CLI output:\n", result.output)
             print("Looked for:", expected_pdf)
-            print("Artifacts dir contents:", list(artifacts_dir.glob("*.pdf")))
+            print("ENV DEBUG:\n", _debug_env())
             assert expected_pdf.exists()
         else:
             pytest.skip("PDF not generated in local env")
