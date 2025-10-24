@@ -54,10 +54,14 @@ def test_cli_build_pdf_minimal(resources):
         with tempfile.TemporaryDirectory() as td:
             tex = Path(td) / "t.tex"
             tex.write_text("\\documentclass{article}\\begin{document}x\\end{document}")
+            env = os.environ.copy()
+            # Ensure TeX caches/logs go to a writable location; some setups need this
+            env.setdefault("TEXMFVAR", td)
             proc = subprocess.run(
-                ["pdflatex", "-interaction=nonstopmode", tex.name],
+                ["pdflatex", "-interaction=nonstopmode", "-halt-on-error", tex.name],
                 cwd=td,
                 capture_output=True,
+                env=env,
             )
             return proc.returncode == 0 and (Path(td) / "t.pdf").exists()
 
@@ -85,10 +89,13 @@ def test_cli_build_pdf_presets(resources):
         with tempfile.TemporaryDirectory() as td:
             tex = Path(td) / "t.tex"
             tex.write_text("\\documentclass{article}\\begin{document}x\\end{document}")
+            env = os.environ.copy()
+            env.setdefault("TEXMFVAR", td)
             proc = subprocess.run(
-                ["pdflatex", "-interaction=nonstopmode", tex.name],
+                ["pdflatex", "-interaction=nonstopmode", "-halt-on-error", tex.name],
                 cwd=td,
                 capture_output=True,
+                env=env,
             )
             return proc.returncode == 0 and (Path(td) / "t.pdf").exists()
 

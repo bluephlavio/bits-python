@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 
 import pytest
+from bits.config import config
 
 
 @pytest.fixture(scope="session")
@@ -35,3 +36,23 @@ def bitsfiles(resources):  # pylint: disable=redefined-outer-name
 # Ensure tests run without a repo-level .bitsrc by pointing to tests/resources/.bitsrc
 BITS_CONFIG_FILE = (Path(__file__).parent / "resources" / ".bitsrc").resolve()
 os.environ.setdefault("BITS_CONFIG", str(BITS_CONFIG_FILE))
+
+# Normalize commonly used variable paths to absolute to avoid registry-relative resolution
+try:
+    if not config.has_section("variables"):
+        config.add_section("variables")
+    # Ensure absolute paths for templates and artifacts
+    for key, rel in {
+        "templates": "tests/resources/templates",
+        "artifacts": "tests/artifacts",
+    }.items():
+        val = config.get("variables", key, fallback=None)
+        if not val:
+            config.set("variables", key, str((Path(rel)).resolve()))
+        else:
+            p = Path(val)
+            if not p.is_absolute():
+                config.set("variables", key, str((Path.cwd() / p).resolve()))
+except Exception:
+    # Be forgiving in case config is not accessible during collection phase
+    pass
