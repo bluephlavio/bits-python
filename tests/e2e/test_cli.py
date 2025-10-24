@@ -22,7 +22,9 @@ def _debug_env() -> str:
     # pdflatex version (first line)
     try:
         out = subprocess.run(["pdflatex", "--version"], capture_output=True, text=True)
-        lines.append(f"pdflatex --version rc={out.returncode} -> {out.stdout.splitlines()[0] if out.stdout else out.stderr.splitlines()[0] if out.stderr else ''}")
+        lines.append(
+            f"pdflatex --version rc={out.returncode} -> {out.stdout.splitlines()[0] if out.stdout else out.stderr.splitlines()[0] if out.stderr else ''}"
+        )
     except Exception as e:  # pragma: no cover
         lines.append(f"pdflatex --version error: {e}")
     # Config variables
@@ -44,6 +46,8 @@ def _debug_env() -> str:
     except Exception as e:  # pragma: no cover
         lines.append(f"artifacts listing error: {e}")
     return "\n".join(lines)
+
+
 from bits.config import config
 
 

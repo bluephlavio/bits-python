@@ -12,3 +12,8 @@ class TargetModel(BaseModel):  # pylint: disable=too-few-public-methods
     queries: dict = {}
     # Compose options for named queries or aggregations
     compose: dict = {}
+    # Optional inheritance mechanism: this target extends one or more base targets
+    # Accepts: string (single), list of strings, possibly cross-file refs: "path/file.yml::Name"
+    extends: str | list[str] | None = None
+    # Optional path-based overrides applied after merge (on queries/context/compose)
+    overrides: list[dict] = []

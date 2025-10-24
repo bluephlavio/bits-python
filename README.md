@@ -217,7 +217,7 @@ targets:
             name: Parameterized Linear Equation
           context:
             a: 2
-            b: -6
+  b: -6
 ```
 
 This renders as:
@@ -268,3 +268,45 @@ Solve for $x$: $x^2 - 3x + 2 = 0$
 ## Conclusion
 
 The **bits** package offers a robust, scalable, and flexible solution for educators to create and manage high-quality STEM assessments. Its modular design and reliance on proven technologies ensure adaptability to future needs, making it a valuable tool in the modern educational landscape.
+
+---
+
+## Targets con extends
+
+- A target can inherit from one or more base targets with `extends`.
+- Supported forms:
+  - `extends: "Base"`
+  - `extends: ["Base A", "Base B"]`
+  - `extends: "path/file.yml::Base"` (cross‑file)
+- Fields inherited and merged (left→right, last wins): `template`, `dest`, `context`, `queries`, `compose`.
+- The derived target may override any of those fields and apply path‑based `overrides` after the merge. Example:
+
+```yaml
+targets:
+  - name: Base
+    template: ${templates}/minimal.tex.j2
+    dest: ${artifacts}
+    context: { title: Base }
+    queries:
+      blocks:
+        - where: { name: Q1 }
+        - where: { name: Q2 }
+    compose:
+      blocks: { flatten: true, merge: concat, as: blocks }
+
+  - name: Profilo BES
+    context: { title_suffix: " — BES" }
+    overrides:
+      - path: "queries.blocks[2].where.name"
+        value: Q3
+
+  - name: Base — BES
+    extends: ["Base", "Profilo BES"]
+    context: { title: "Base${title_suffix}" }
+```
+
+Errors and validation
+
+- Unknown base in `extends` → clear error with available targets.
+- Cycle in `extends` → error with the chain involved.
+- Bad `overrides.path` (missing key/index) → error identifying the path.

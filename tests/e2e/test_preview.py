@@ -19,7 +19,9 @@ def test_preview_bitsfile_tex_output(resources):
     if not expected.exists():
         print("Preview CLI output:\n", res.output)
         print("out dir:", outdir)
-        print("config.preview.out_dir:", config.get("preview", "out_dir", fallback=None))
+        print(
+            "config.preview.out_dir:", config.get("preview", "out_dir", fallback=None)
+        )
         print("list out dir:", list(outdir.glob("*")))
     assert expected.exists()
 

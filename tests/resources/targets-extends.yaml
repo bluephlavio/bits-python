@@ -1,0 +1,82 @@
+targets:
+  - name: Base Test
+    template: ${templates}/minimal.tex.j2
+    dest: ${artifacts}
+    context:
+      title: Base
+    queries:
+      blocks:
+        - where: { name: Q1 }
+          metadata: { pts: [0, 0, 0, 0] }
+        - where: { name: Q2 }
+          metadata: { pts: [0, 0, 0, 0] }
+    compose:
+      blocks: { flatten: true, merge: concat, as: blocks }
+
+  - name: Profilo BES
+    template: ${templates}/minimal.tex.j2
+    dest: ${artifacts}
+    context:
+      title_suffix: " — BES"
+    queries:
+      blocks:
+        - where: { name: Q1 }
+          metadata: { pts: [0, 0, 0, 0] }
+        - where: { name: Q2 }
+          metadata: { pts: [0, 0, 0, 0] }
+    compose:
+      blocks: { flatten: true, merge: concat, as: blocks }
+    overrides:
+      - path: "queries.blocks[1].metadata.pts"
+        value: [3, 0, 0, 0]
+      - path: "queries.blocks[2].metadata.pts"
+        value: [3, 0, 4, 0]
+      - path: "queries.blocks[2].where.name"
+        value: Q3
+
+  - name: Base Test — BES
+    extends: ["Base Test", "Profilo BES"]
+    context:
+      title: "Base — BES"
+
+  - name: Compose Base
+    template: ${templates}/minimal.tex.j2
+    dest: ${artifacts}
+    context:
+      title: Compose
+    queries:
+      blocks:
+        - where: {}
+          select: { indices: [1, 2] }
+        - where: {}
+          select: { indices: [3, 4] }
+    compose:
+      blocks: { flatten: true, merge: concat, as: blocks }
+
+  - name: Compose Derived Interleave
+    extends: "Compose Base"
+    compose:
+      blocks: { merge: interleave }
+
+  - name: Overrides Only
+    extends: "Base Test"
+    overrides:
+      - path: "queries.blocks[1].where.name"
+        value: Q4
+      - path: "queries.blocks[2].where.name"
+        value: Q3
+
+  - name: Base Test — DSA (XFile)
+    extends: ["Base Test", "profiles.yml::Profilo DSA"]
+    context:
+      title: "Base — DSA"
+
+bits:
+  - name: Q1
+    src: Q1
+  - name: Q2
+    src: Q2
+  - name: Q3
+    src: Q3
+  - name: Q4
+    src: Q4

@@ -1,0 +1,22 @@
+targets:
+  - name: Base
+    template: ${templates}/minimal.tex.j2
+    dest: ${artifacts}
+    context: { title: Base }
+    queries:
+      blocks:
+        - where: { name: Q1 }
+    compose:
+      blocks: { flatten: true, merge: concat, as: blocks }
+
+  - name: Derived
+    extends: "Base"
+    overrides:
+      - path: "queries.blocks[99].where.name"
+        value: Q2
+
+bits:
+  - name: Q1
+    src: Q1
+  - name: Q2
+    src: Q2
