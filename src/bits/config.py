@@ -1,4 +1,5 @@
 import configparser
+import os
 import shutil
 from configparser import ExtendedInterpolation
 from pathlib import Path
@@ -28,6 +29,20 @@ try:
         config.read(GLOBAL_BITS_CONFIG_FILE)
 except Exception:  # pragma: no cover
     pass
+
+# Load config from env override (highest precedence)
+ENV_CONFIG_FILE = os.environ.get("BITS_CONFIG")
+if ENV_CONFIG_FILE:
+    try:
+        env_config = configparser.ConfigParser(interpolation=ExtendedInterpolation())
+        env_config.read(ENV_CONFIG_FILE)
+        for section in env_config.sections():
+            if not config.has_section(section):
+                config.add_section(section)
+            for key, value in env_config.items(section):
+                config.set(section, key, value)
+    except Exception:  # pragma: no cover
+        pass
 
 # Merge local project config (.bitsrc) if present
 LOCAL_BITS_CONFIG_FILE = Path(".bitsrc")

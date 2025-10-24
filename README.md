@@ -18,6 +18,19 @@ The core objective of **bits** is to streamline the process of producing educati
 
 ## Key Features
 
+## CLI Quick Start
+
+- Build: `bits build <path> [--watch] [--output-tex]`
+- Convert: `bits convert <src> [--out <path> | --fmt md|yml|yaml]`
+
+New in this repo:
+- Preview: `bits preview <spec> [--out DIR] [--pdf|--tex|--both] [--no-plugins]`
+  - Spec examples: `file.yml`, `file.yml:"Bit Name"#2:default`, `file.yml[Bit Name#2@1:default]`
+- Plugins: declare plugin files in `.bitsrc` under `[jinja]` `plugins = ./filters/custom.py`.
+- Output management: `--pdf`, `--tex`, `--both`, plus `--keep-intermediates`, `--intermediates-dir`, `--build-dir`.
+
+See `docs/preview-and-plugins.md` for details and examples.
+
 ### 1. **Bits and Targets**
 - **Bits**: Individual problem templates written in a custom syntax inspired by Jinja2 and LaTeX. Each bit can generate multiple problems based on variable context.
 - **Targets**: Complete tests or assignments assembled from a list of selected bits. Targets also include metadata such as title, instructions, and additional constant data.
