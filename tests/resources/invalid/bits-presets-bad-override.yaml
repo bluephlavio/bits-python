@@ -16,7 +16,7 @@ bits:
     defaults:
       context: {}
     presets:
-      - id: oops
+      - name: oops
         overrides:
           - path: "queries.blocks[1].where.name"  # queries missing -> error
             value: "X"

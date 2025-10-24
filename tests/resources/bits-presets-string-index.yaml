@@ -22,9 +22,9 @@ bits:
       context:
         formula: "A"
     presets:
-      - id: default
+      - name: default
         context: { }
-      - id: alt
+      - name: alt
         context:
           formula: "B"
     src: |

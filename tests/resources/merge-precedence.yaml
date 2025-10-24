@@ -20,7 +20,7 @@ bits:
         a: 1
         nested: { x: 1, y: 1 }
     presets:
-      - id: default
+      - name: default
         context:
           nested: { y: 2, z: 3 }
     src: |

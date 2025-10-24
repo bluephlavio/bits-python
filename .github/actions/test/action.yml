@@ -11,4 +11,5 @@ runs:
   - name: Run pytest
     shell: bash
     run: |
+      export BITS_CONFIG="$GITHUB_WORKSPACE/tests/resources/.bitsrc"
       pytest

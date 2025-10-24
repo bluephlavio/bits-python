@@ -27,9 +27,9 @@ bits:
     defaults:
       formula: "M=\\frac{Fr^2}{Gm}"
     presets:
-      - id: default
+      - name: default
         context: { }
-      - id: alt
+      - name: alt
         context:
           formula: "M=\\frac{F r^2}{G m} (alt)"
     src: |

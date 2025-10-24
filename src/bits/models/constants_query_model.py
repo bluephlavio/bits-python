@@ -9,6 +9,8 @@ class ConstantsQueryModel(BaseModel):  # pylint: disable=too-few-public-methods
     tags: List[str] = None
 
 
-class WhereConstantsModel(ConstantsQueryModel):  # pylint: disable=too-few-public-methods
+class WhereConstantsModel(
+    ConstantsQueryModel
+):  # pylint: disable=too-few-public-methods
     has: List[str] | None = None
     missing: List[str] | None = None

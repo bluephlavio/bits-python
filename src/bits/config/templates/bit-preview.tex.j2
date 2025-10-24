@@ -1,0 +1,12 @@
+\documentclass{standalone}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{geometry}
+\geometry{margin=1cm}
+
+\begin{document}
+\noindent\textbf{Name:} \VAR{ bit.bit.name or "(unnamed)" }\quad
+\textbf{Num:} \VAR{ bit.bit.num or "-" }\quad
+\textbf{Tags:} \VAR{ ', '.join(bit.bit.tags or []) }\\[4pt]
+\VAR{ bit.render() }
+\end{document}

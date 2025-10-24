@@ -86,18 +86,20 @@ class RegistryFile(Registry):
                 bd = bit.defaults or {}
                 # Preserve raw defaults (for presets overrides on queries AST)
                 try:
-                    bit._defaults_raw = copy.deepcopy(bd)  # pylint: disable=protected-access
+                    bit._defaults_raw = copy.deepcopy(
+                        bd
+                    )  # pylint: disable=protected-access
                 except Exception:  # pragma: no cover
                     bit._defaults_raw = bd
                 if "context" in bd or "queries" in bd:
                     # New schema: defaults.context + defaults.queries
                     ctx = self._resolve_context(bd.get("context", {}))
                     if "queries" in bd:
-                        ctx.update(self._resolve_inline_queries(bd.get("queries") or {}))
+                        ctx.update(
+                            self._resolve_inline_queries(bd.get("queries") or {})
+                        )
                     # Merge legacy query-style defaults if present at top-level
-                    legacy_q = {
-                        k: bd[k] for k in ["blocks", "constants"] if k in bd
-                    }
+                    legacy_q = {k: bd[k] for k in ["blocks", "constants"] if k in bd}
                     if legacy_q:
                         ctx.update(self._resolve_context(legacy_q))
                     bit.defaults = ctx
@@ -220,12 +222,16 @@ class RegistryFile(Registry):
                 try:
                     with_ctx = self._resolve_context(data.with_.context)
                 except Exception as err:
-                    raise TemplateContextError("Could not resolve block 'with.context'.") from err
+                    raise TemplateContextError(
+                        "Could not resolve block 'with.context'."
+                    ) from err
             if data.with_.queries:
                 try:
                     with_queries_ctx = self._resolve_inline_queries(data.with_.queries)
                 except Exception as err:
-                    raise TemplateContextError("Could not resolve block 'with.queries'.") from err
+                    raise TemplateContextError(
+                        "Could not resolve block 'with.queries'."
+                    ) from err
 
         metadata: dict = data.metadata
         blocks: List[Block] = []
@@ -263,22 +269,36 @@ class RegistryFile(Registry):
         presets = getattr(bit, "presets", []) or []
         if not presets:
             return None
-        # Try id first when selector is str
+        # Prefer matching by user-visible label 'name' (new schema)
         if isinstance(selector, str):
             for p in presets:
-                if p.get("id") == selector:
+                if p.get("name") == selector:
                     return p
-            # If numeric string and id not found, try as index
+            # Legacy compatibility: support 'id' with deprecation warning
+            for p in presets:
+                if p.get("id") == selector:
+                    import warnings
+
+                    warnings.warn(
+                        "Preset key 'id' is deprecated; use 'name' instead.",
+                        DeprecationWarning,
+                    )
+                    return p
+            # If numeric string and not found by label, try as index
             try:
                 selector = int(selector)
             except ValueError:
-                raise ValueError(f"Preset '{selector}' not found for bit '{bit.name}'")
+                raise ValueError(
+                    f"Preset '{selector}' not found for bit '{getattr(bit, 'name', None)}'"
+                )
         # Index path (1-based)
         if isinstance(selector, int):
             idx = selector - 1
             if 0 <= idx < len(presets):
                 return presets[idx]
-            raise ValueError(f"Preset index {selector} out of range for bit '{bit.name}'")
+            raise ValueError(
+                f"Preset index {selector} out of range for bit '{bit.name}'"
+            )
         return None
 
     @staticmethod
@@ -311,7 +331,9 @@ class RegistryFile(Registry):
 
         # queries overlay (evaluated and exposed into variables) with merge semantics
         # Base queries from defaults (AST), if provided
-        defaults_raw = getattr(bit, "_defaults_raw", {})  # pylint: disable=protected-access
+        defaults_raw = getattr(
+            bit, "_defaults_raw", {}
+        )  # pylint: disable=protected-access
         q_base = {}
         if isinstance(defaults_raw, dict):
             if "queries" in defaults_raw:
@@ -328,7 +350,9 @@ class RegistryFile(Registry):
         overrides = preset.get("overrides") or []
         if overrides:
             if not q_merged:
-                raise ValueError("Preset overrides require 'queries' (from defaults or preset).")
+                raise ValueError(
+                    "Preset overrides require 'queries' (from defaults or preset)."
+                )
             for ov in overrides:
                 path = ov.get("path")
                 value = ov.get("value")
@@ -346,7 +370,7 @@ class RegistryFile(Registry):
 
         # Allow paths prefixed with 'queries.' even when root is already the queries map
         if path.startswith("queries."):
-            path = path[len("queries."):]
+            path = path[len("queries.") :]
 
         cur = root
         tokens = path.split(".")
@@ -488,7 +512,9 @@ class RegistryFile(Registry):
         # Prepare base context (static only). Avoid resolving legacy top-level blocks/constants here;
         # they are handled via queries mapping below.
         raw_context = data.context or {}
-        base_context_input = {k: v for k, v in raw_context.items() if k not in ["blocks", "constants"]}
+        base_context_input = {
+            k: v for k, v in raw_context.items() if k not in ["blocks", "constants"]
+        }
         try:
             context: dict = self._resolve_context(base_context_input)
         except Exception as err:
@@ -518,7 +544,8 @@ class RegistryFile(Registry):
             context.update(composed_vars)
 
         dest: Path = self._resolve_path(data.dest or ".")
-        dest = dest / f"{self._path.stem}-{name}.pdf" if dest.suffix == "" else dest
+        # If dest is a directory, keep as directory; Target will name <name>.pdf
+        # This preserves stable, readable naming and aligns with tests.
 
         target: Target = Target(template, context, dest, name=name, tags=tags)
         return target
@@ -602,7 +629,9 @@ class RegistryFile(Registry):
                 flat_list = res
 
             # Dedupe if requested
-            if dedupe in ("by:id", "by:name", "by:hash") and isinstance(flat_list, list):
+            if dedupe in ("by:id", "by:name", "by:hash") and isinstance(
+                flat_list, list
+            ):
                 seen = set()
 
                 def key_fn(x):
@@ -654,7 +683,11 @@ class RegistryFile(Registry):
                     if merge == "concat":
                         agg = []
                         for lst in src_lists:
-                            if isinstance(lst, list) and lst and isinstance(lst[0], list):
+                            if (
+                                isinstance(lst, list)
+                                and lst
+                                and isinstance(lst[0], list)
+                            ):
                                 agg.extend([item for sub in lst for item in sub])
                             else:
                                 agg.extend(lst)
@@ -662,7 +695,11 @@ class RegistryFile(Registry):
                         # normalize to list-of-lists
                         norm_lists = []
                         for lst in src_lists:
-                            if isinstance(lst, list) and lst and isinstance(lst[0], list):
+                            if (
+                                isinstance(lst, list)
+                                and lst
+                                and isinstance(lst[0], list)
+                            ):
                                 norm_lists.extend(lst)
                             else:
                                 norm_lists.append(list(lst))

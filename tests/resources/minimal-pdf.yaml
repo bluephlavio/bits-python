@@ -1,0 +1,18 @@
+targets:
+  - name: minimal
+    template: ./templates/minimal.tex.j2
+    dest: ${artifacts}
+    context:
+      title: Minimal PDF
+    queries:
+      blocks:
+        - where: { name: PDF Bit }
+      # Compose blocks list as expected by template
+    compose:
+      blocks: { flatten: true, merge: concat, as: blocks }
+
+bits:
+  - name: PDF Bit
+    src: |
+      Hello, PDF!
+
