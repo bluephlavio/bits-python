@@ -67,8 +67,7 @@ class Renderer:
                 tex_dest = dest.with_suffix(".tex")
                 tex_dest.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy(str(tex_file), str(tex_dest))
-                Renderer._cache[dest] = current_hash
-                # No intermediates to keep for tex-only
+                # Do NOT update cache on tex-only output; we may still need to build PDF next.
                 return
 
             log_file = tex_file.with_suffix(".log")
