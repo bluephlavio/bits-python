@@ -168,4 +168,6 @@ out
 # tests artifacts
 tests/artifacts
 
-.bitsrc
+# Ignore user-level .bitsrc at repo root, but keep the test fixture
+/.bitsrc
+!tests/resources/.bitsrc

@@ -73,6 +73,9 @@ class Renderer:
 
             log_file = tex_file.with_suffix(".log")
             try:
+                # Ensure TeX can write cache files in the working directory on first run
+                env = os.environ.copy()
+                env.setdefault("TEXMFVAR", str(wd_path))
                 subprocess.check_call(
                     [
                         "pdflatex",
@@ -80,6 +83,7 @@ class Renderer:
                         str(tex_file.name),
                     ],
                     cwd=str(wd_path),
+                    env=env,
                 )
                 pdf_file = wd_path / f"{dest.stem}.pdf"
                 dest.parent.mkdir(parents=True, exist_ok=True)

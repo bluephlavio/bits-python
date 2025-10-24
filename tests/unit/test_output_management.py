@@ -17,7 +17,7 @@ def test_renderer_keep_intermediates_all(tmp_path: Path):
     build_dir = tmp_path / "_tmp"
     inter_dir = tmp_path / "_build"
 
-    def fake_check_call(cmd, cwd=None):
+    def fake_check_call(cmd, cwd=None, **kwargs):  # accept env and others
         _setup_fake_pdflatex_call(Path(cwd), dest.stem)
         return 0
 

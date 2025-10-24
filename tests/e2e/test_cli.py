@@ -8,6 +8,7 @@ import subprocess
 import tempfile
 
 from bits.cli.main import app
+from bits.config import config
 
 
 def test_cli_version():
@@ -72,10 +73,14 @@ def test_cli_build_pdf_minimal(resources):
     result = runner.invoke(app, ["build", str(path), "--pdf"], prog_name="bits")
     assert result.exit_code == 0
     # Expected output PDF in artifacts
-    expected_pdf = Path("tests/artifacts/minimal.pdf")
+    artifacts_dir = Path(config.get("variables", "artifacts"))
+    expected_pdf = artifacts_dir / "minimal.pdf"
     if not expected_pdf.exists():
         # In local envs without full TeX deps, be lenient; CI asserts strictly
         if os.environ.get("CI"):
+            print("CLI output:\n", result.output)
+            print("Looked for:", expected_pdf)
+            print("Artifacts dir contents:", list(artifacts_dir.glob("*.pdf")))
             assert expected_pdf.exists()
         else:
             pytest.skip("PDF not generated in local env")
@@ -106,9 +111,13 @@ def test_cli_build_pdf_presets(resources):
     path = resources / "bits-presets.yaml"
     result = runner.invoke(app, ["build", str(path), "--pdf"], prog_name="bits")
     assert result.exit_code == 0
-    expected_pdf = Path("tests/artifacts/t1.pdf")
+    artifacts_dir = Path(config.get("variables", "artifacts"))
+    expected_pdf = artifacts_dir / "t1.pdf"
     if not expected_pdf.exists():
         if os.environ.get("CI"):
+            print("CLI output:\n", result.output)
+            print("Looked for:", expected_pdf)
+            print("Artifacts dir contents:", list(artifacts_dir.glob("*.pdf")))
             assert expected_pdf.exists()
         else:
             pytest.skip("PDF not generated in local env")
