@@ -544,7 +544,8 @@ class RegistryFile(Registry):
             context.update(composed_vars)
 
         dest: Path = self._resolve_path(data.dest or ".")
-        dest = dest / f"{self._path.stem}-{name}.pdf" if dest.suffix == "" else dest
+        # If dest is a directory, keep as directory; Target will name <name>.pdf
+        # This preserves stable, readable naming and aligns with tests.
 
         target: Target = Target(template, context, dest, name=name, tags=tags)
         return target
