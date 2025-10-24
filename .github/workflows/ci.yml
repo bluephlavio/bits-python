@@ -81,10 +81,10 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-poetry-
     
-    - name: Install pdflatex
+    - name: Install minimal TeX (pdflatex)
       run: |
         sudo apt-get update
-        sudo apt-get install -y texlive-latex-base texlive-latex-recommended texlive-fonts-recommended
+        sudo apt-get install -y texlive-latex-base
 
     - name: Install the package
       uses: ./.github/actions/install-package

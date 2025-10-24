@@ -1,64 +1,30 @@
 \documentclass{article}
 
-\usepackage[utf8]{inputenc}
-\usepackage[italian]{babel}
-\usepackage[fontsize=\VAR{fontsize or "13pt"}]{scrextend}
-\usepackage{xcolor}
-\usepackage{enumitem}
-\usepackage{float}
-\usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{amsfonts}
-
-\BLOCK{ include 'tikz.tex.j2' }
-\BLOCK{ include 'pgfplots.tex.j2' }
-\BLOCK{ include 'siunitx.tex.j2' }
-\BLOCK{ include 'commands.tex.j2' }
-\BLOCK{ include 'tabularx.tex.j2' }
-\BLOCK{ include 'geometry.tex.j2' }
-
-\pagenumbering{gobble}
-
-\title{\vspace{-2\baselineskip}{\small \VAR{subtitle}}\\{\VAR{title}}}
-\author{\VAR{class_} \BLOCK{ if type }\emph{\VAR{type}}\BLOCK{ endif }}
-\date{\VAR{date}}
+\title{\VAR{title}}\author{\VAR{class_}}\date{\VAR{date}}
 
 \begin{document}
-
 \maketitle
 
 \section*{Quesiti}
-
 \begin{enumerate}
-    \BLOCK{ for block in blocks }%
-    \item%
-        \BLOCK{ if metadata }%
-            \textbf{{\color{red} id:} \VAR{ block.bit.id }\\ {\color{red} name:} \VAR{ block.bit.name }\\ {\color{red} tags:} \VAR{ block.bit.tags|join(", ")|replace("#", "\#") } } \\ \vspace{5pt} \\%
-        \BLOCK{ endif }%
-        \VAR{ block.render() }%
-        \vspace{\VAR{ spaces or "15pt" }}%
-    \BLOCK{ endfor }%
+\BLOCK{ for block in blocks }
+  \item
+    \BLOCK{ if metadata }\textbf{id:} \VAR{ block.bit.id }\\ \textbf{name:} \VAR{ block.bit.name }\\ \textbf{tags:} \VAR{ block.bit.tags|join(", ")|replace("#", "\#") }\\[4pt] \BLOCK{ endif }
+    \VAR{ block.render() }
+\BLOCK{ endfor }
 \end{enumerate}
 
-\BLOCK{ if constants }%
-    \section*{Costanti}
-    \begin{table}[H]
-        \centering
-        \small
-        \begin{tabularx}{\textwidth}{Xcl}
-            \toprule
-            \textbf{Nome} & \textbf{Simbolo} & \textbf{Valore}\\
-            \midrule
-            \BLOCK{ for constant in constants }%
-                \VAR{ constant.name } & \VAR{ constant.symbol } & \VAR{ constant.value }\\
-            \BLOCK{ endfor }%
-            \bottomrule
-        \end{tabularx}
-    \end{table}
-\BLOCK{ endif }%
+\BLOCK{ if constants }
+\section*{Costanti}
+\begin{tabular}{lcl}
+\textbf{Nome} & \textbf{Simbolo} & \textbf{Valore}\\
+\BLOCK{ for constant in constants }
+\VAR{ constant.name } & \VAR{ constant.symbol } & \VAR{ constant.value }\\
+\BLOCK{ endfor }
+\end{tabular}
+\BLOCK{ endif }
 
 \newpage
-
 \section*{Griglia di Valutazione}
 \BLOCK{ include 'grid.tex.j2' }
 
