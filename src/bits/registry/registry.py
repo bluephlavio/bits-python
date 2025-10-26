@@ -52,10 +52,30 @@ class Registry(ABC):
         self._targets.clear()
         self._deps.clear()
 
-    def render(self, output_tex: bool = False) -> None:
+    def render(
+        self,
+        output_tex: bool = False,
+        *,
+        pdf: bool | None = None,
+        tex: bool | None = None,
+        both: bool = False,
+        build_dir=None,
+        intermediates_dir=None,
+        keep_intermediates: str = "none",
+        unique_strategy: str | None = None,
+    ) -> None:
         with self._load_lock:
             for target in self._targets:
-                target.render(output_tex=output_tex)
+                target.render(
+                    output_tex=output_tex,
+                    pdf=pdf,
+                    tex=tex,
+                    both=both,
+                    build_dir=build_dir,
+                    intermediates_dir=intermediates_dir,
+                    keep_intermediates=keep_intermediates,
+                    unique_strategy=unique_strategy,
+                )
 
     def add_dep(self, registry: Registry) -> None:
         if not isinstance(registry, Registry):

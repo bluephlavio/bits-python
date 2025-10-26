@@ -1,0 +1,29 @@
+targets:
+  - name: Base
+    template: ${templates}/minimal.tex.j2
+    dest: ${artifacts}
+    context: { title: Profile Base }
+    queries:
+      blocks:
+        - where: { name: Q1 }
+        - where: { name: Q2 }
+    compose:
+      blocks: { flatten: true, merge: concat, as: blocks }
+
+  - name: Profilo DSA
+    extends: "Base"
+    context:
+      title_suffix: " — DSA"
+    overrides:
+      - path: "queries.blocks[2].where.name"
+        value: Q4
+
+bits:
+  - name: Q1
+    src: Q1
+  - name: Q2
+    src: Q2
+  - name: Q3
+    src: Q3
+  - name: Q4
+    src: Q4

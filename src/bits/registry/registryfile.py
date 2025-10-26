@@ -86,18 +86,20 @@ class RegistryFile(Registry):
                 bd = bit.defaults or {}
                 # Preserve raw defaults (for presets overrides on queries AST)
                 try:
-                    bit._defaults_raw = copy.deepcopy(bd)  # pylint: disable=protected-access
+                    bit._defaults_raw = copy.deepcopy(
+                        bd
+                    )  # pylint: disable=protected-access
                 except Exception:  # pragma: no cover
                     bit._defaults_raw = bd
                 if "context" in bd or "queries" in bd:
                     # New schema: defaults.context + defaults.queries
                     ctx = self._resolve_context(bd.get("context", {}))
                     if "queries" in bd:
-                        ctx.update(self._resolve_inline_queries(bd.get("queries") or {}))
+                        ctx.update(
+                            self._resolve_inline_queries(bd.get("queries") or {})
+                        )
                     # Merge legacy query-style defaults if present at top-level
-                    legacy_q = {
-                        k: bd[k] for k in ["blocks", "constants"] if k in bd
-                    }
+                    legacy_q = {k: bd[k] for k in ["blocks", "constants"] if k in bd}
                     if legacy_q:
                         ctx.update(self._resolve_context(legacy_q))
                     bit.defaults = ctx
@@ -109,6 +111,24 @@ class RegistryFile(Registry):
                     f"Could not resolve bit defaults: \n\n{bit.defaults}\n"
                 ) from err
 
+        # Ensure a tool-defined "default" preset exists and is not user-defined
+        for bit in self._bits:
+            try:
+                presets = getattr(bit, "presets", []) or []
+                # Drop any user-defined preset named 'default' (case-sensitive)
+                filtered = [p for p in presets if p.get("name") != "default" and p.get("id") != "default"]
+                if len(filtered) != len(presets):
+                    warnings.warn(
+                        "User-defined preset named 'default' is ignored; the tool creates it automatically.",
+                        DeprecationWarning,
+                    )
+                # Prepend a synthetic default preset
+                synthetic_default = {"name": "default"}
+                bit.presets = [synthetic_default, *filtered]
+            except Exception:
+                # Be resilient if metadata is malformed; leave presets as-is
+                pass
+
     def _load_constants(
         self, constant_models: List[ConstantModel], common_tags: List[str]
     ):
@@ -118,8 +138,32 @@ class RegistryFile(Registry):
             self._constants.append(constant)
 
     def _load_targets(self, target_models: List[TargetModel], common_tags: List[str]):
+        # Resolve extends hierarchy where present; build deterministic order
+        # Note: each target in this file is resolved independently; bases can be
+        # local or cross-file. Cycles are detected and reported.
+        local_map = {tm.name: tm for tm in target_models if tm.name}
+
+        memo: dict[str, dict] = {}
+
         for target_model in target_models:
-            target: Target = self._resolve_target(target_model)
+            try:
+                merged_spec = self._resolve_target_model_extends(
+                    target_model, local_map, memo
+                )
+            except Exception as err:
+                raise err
+
+            # Create a synthetic TargetModel to feed into resolver
+            final_tm = TargetModel(
+                name=target_model.name,
+                tags=target_model.tags or [],
+                template=merged_spec.get("template"),
+                dest=merged_spec.get("dest"),
+                context=merged_spec.get("context") or {},
+                queries=merged_spec.get("queries") or {},
+                compose=merged_spec.get("compose") or {},
+            )
+            target: Target = self._resolve_target(final_tm)
             target.tags.extend(common_tags)
             self._targets.append(target)
 
@@ -155,6 +199,186 @@ class RegistryFile(Registry):
             raise TemplateLoadError(
                 f"Error loading template at {template_path}"
             ) from err
+
+    def _resolve_target_model_extends(
+        self,
+        model: TargetModel,
+        local_map: dict[str | None, TargetModel],
+        memo: dict[str, dict],
+        stack: list[str] | None = None,
+        *,
+        apply_self_overrides: bool = True,
+    ) -> dict:
+        """Resolve a TargetModel with optional extends into a merged spec dict.
+
+        Merges: template, dest, context, queries, compose. Lists replace; maps deep-merge.
+        Multi-extends: apply bases left->right; last wins. Finally apply derived fields, then
+        apply derived 'overrides' (path-based) onto queries/context/compose.
+        """
+        from .registryfile import RegistryFile as _RegistryFile
+        from ..exceptions import RegistryReferenceError
+
+        stack = stack or []
+
+        # Build a cache key for memoization and cycle detection
+        key_name = model.name or "<unnamed>"
+        cur_key = f"{self._path.resolve()}::{key_name}"
+        if cur_key in stack:
+            chain = " -> ".join(stack + [cur_key])
+            raise RegistryReferenceError(
+                message=f"Cycle detected in target extends: {chain}",
+                reference=key_name,
+                path=self._path,
+            )
+        if cur_key in memo:
+            return memo[cur_key]
+
+        # Normalize extends list
+        raw_ext = model.extends if hasattr(model, "extends") else None
+        if raw_ext is None or (isinstance(raw_ext, list) and len(raw_ext) == 0):
+            base_merged: dict = {}
+        else:
+            if isinstance(raw_ext, str):
+                ext_list = [raw_ext]
+            elif isinstance(raw_ext, list):
+                ext_list = raw_ext
+            else:
+                raise RegistryReferenceError(
+                    message="Invalid 'extends' value; expected string or list of strings",
+                    reference=str(raw_ext),
+                    path=self._path,
+                )
+
+            base_merged = {}
+            base_specs_and_ovs = []
+            for ext in ext_list:
+                # Parse cross-file refs: path::Name
+                if "::" in ext:
+                    fpath_str, tname = ext.split("::", 1)
+                    reg = self._resolve_registry(fpath_str)
+                    if not isinstance(reg, _RegistryFile):  # pragma: no cover
+                        raise RegistryReferenceError(
+                            message="Cross-file target extends requires file-based registry",
+                            reference=ext,
+                            path=self._path,
+                        )
+                    # Locate base by name
+                    candidates = [
+                        tm for tm in reg.registryfile_model.targets if tm.name == tname
+                    ]
+                    if not candidates:
+                        avail = ", ".join(
+                            [
+                                t.name or "<unnamed>"
+                                for t in reg.registryfile_model.targets
+                            ]
+                        )
+                        raise RegistryReferenceError(
+                            message=f"Base target not found: '{tname}'. Available: {avail}",
+                            reference=ext,
+                            path=self._path,
+                        )
+                    base_tm = candidates[0]
+                    next_stack = stack + [cur_key]
+                    # Resolve spec for base WITHOUT applying its own overrides at this stage;
+                    # we want to apply overrides after merging into the accumulator so that
+                    # path-based patches can target fields coming from earlier bases.
+                    base_spec = reg._resolve_target_model_extends(  # pylint: disable=protected-access
+                        base_tm,
+                        {tm.name: tm for tm in reg.registryfile_model.targets},
+                        memo,
+                        next_stack,
+                        apply_self_overrides=False,
+                    )
+                    base_overrides = getattr(base_tm, "overrides", None) or []
+                else:
+                    # Local lookup
+                    base_tm = local_map.get(ext)
+                    if not base_tm:
+                        avail = ", ".join([k or "<unnamed>" for k in local_map.keys()])
+                        raise RegistryReferenceError(
+                            message=f"Base target not found: '{ext}'. Available: {avail}",
+                            reference=ext,
+                            path=self._path,
+                        )
+                    next_stack = stack + [cur_key]
+                    base_spec = self._resolve_target_model_extends(
+                        base_tm, local_map, memo, next_stack, apply_self_overrides=False
+                    )
+                    base_overrides = getattr(base_tm, "overrides", None) or []
+                base_specs_and_ovs.append((base_spec, base_overrides))
+
+            # Merge all base specs first (left->right, last wins)
+            for spec, _ovs in base_specs_and_ovs:
+                base_merged = self._deep_merge_extends(base_merged, spec)
+            # Then apply overrides from each base in order
+            for _spec, base_overrides in base_specs_and_ovs:
+                if base_overrides:
+                    qmap = base_merged.setdefault("queries", {})
+                    cmap = base_merged.setdefault("context", {})
+                    compmap = base_merged.setdefault("compose", {})
+                    for ov in base_overrides:
+                        path = ov.get("path")
+                        value = ov.get("value")
+                        if not path:
+                            continue
+                        if path.startswith("queries."):
+                            self._apply_path_override(qmap, path, value)
+                        elif path.startswith("context."):
+                            self._apply_path_override_plain(
+                                cmap, path[len("context.") :], value
+                            )
+                        elif path.startswith("compose."):
+                            self._apply_path_override_plain(
+                                compmap, path[len("compose.") :], value
+                            )
+                        else:
+                            self._apply_path_override(qmap, path, value)
+
+        # Apply current model fields on top of merged bases
+        current_spec = {}
+        if model.template is not None:
+            current_spec["template"] = model.template
+        if model.dest is not None:
+            current_spec["dest"] = model.dest
+        if getattr(model, "context", None):
+            current_spec["context"] = copy.deepcopy(model.context)
+        if getattr(model, "queries", None):
+            current_spec["queries"] = copy.deepcopy(model.queries)
+        if getattr(model, "compose", None):
+            current_spec["compose"] = copy.deepcopy(model.compose)
+
+        merged = self._deep_merge_extends(base_merged, current_spec)
+
+        # Apply overrides from this model only (after merge)
+        overrides = getattr(model, "overrides", None) or []
+        if apply_self_overrides and overrides:
+            # We support overrides on queries.*, context.*, or compose.*
+            qmap = merged.setdefault("queries", {})
+            cmap = merged.setdefault("context", {})
+            compmap = merged.setdefault("compose", {})
+
+            for ov in overrides:
+                path = ov.get("path")
+                value = ov.get("value")
+                if not path:
+                    continue
+                if path.startswith("queries."):
+                    self._apply_path_override(qmap, path, value)
+                elif path.startswith("context."):
+                    self._apply_path_override_plain(
+                        cmap, path[len("context.") :], value
+                    )
+                elif path.startswith("compose."):
+                    self._apply_path_override_plain(
+                        compmap, path[len("compose.") :], value
+                    )
+                else:
+                    # Default to queries if no explicit prefix
+                    self._apply_path_override(qmap, path, value)
+
+        memo[cur_key] = merged
+        return merged
 
     def _resolve_context(self, data: dict) -> dict:
         context: dict = {
@@ -220,12 +444,16 @@ class RegistryFile(Registry):
                 try:
                     with_ctx = self._resolve_context(data.with_.context)
                 except Exception as err:
-                    raise TemplateContextError("Could not resolve block 'with.context'.") from err
+                    raise TemplateContextError(
+                        "Could not resolve block 'with.context'."
+                    ) from err
             if data.with_.queries:
                 try:
                     with_queries_ctx = self._resolve_inline_queries(data.with_.queries)
                 except Exception as err:
-                    raise TemplateContextError("Could not resolve block 'with.queries'.") from err
+                    raise TemplateContextError(
+                        "Could not resolve block 'with.queries'."
+                    ) from err
 
         metadata: dict = data.metadata
         blocks: List[Block] = []
@@ -263,22 +491,36 @@ class RegistryFile(Registry):
         presets = getattr(bit, "presets", []) or []
         if not presets:
             return None
-        # Try id first when selector is str
+        # Prefer matching by user-visible label 'name' (new schema)
         if isinstance(selector, str):
             for p in presets:
-                if p.get("id") == selector:
+                if p.get("name") == selector:
                     return p
-            # If numeric string and id not found, try as index
+            # Legacy compatibility: support 'id' with deprecation warning
+            for p in presets:
+                if p.get("id") == selector:
+                    import warnings
+
+                    warnings.warn(
+                        "Preset key 'id' is deprecated; use 'name' instead.",
+                        DeprecationWarning,
+                    )
+                    return p
+            # If numeric string and not found by label, try as index
             try:
                 selector = int(selector)
             except ValueError:
-                raise ValueError(f"Preset '{selector}' not found for bit '{bit.name}'")
+                raise ValueError(
+                    f"Preset '{selector}' not found for bit '{getattr(bit, 'name', None)}'"
+                )
         # Index path (1-based)
         if isinstance(selector, int):
             idx = selector - 1
             if 0 <= idx < len(presets):
                 return presets[idx]
-            raise ValueError(f"Preset index {selector} out of range for bit '{bit.name}'")
+            raise ValueError(
+                f"Preset index {selector} out of range for bit '{bit.name}'"
+            )
         return None
 
     @staticmethod
@@ -298,6 +540,14 @@ class RegistryFile(Registry):
         resolved queries like blocks/constants). For queries lists, replacement semantics
         apply (preset-provided lists replace defaults silently at this overlay level).
         """
+        # Treat no selector or 'default' as the tool-provided default preset:
+        # expose the bit's resolved defaults (context + resolved queries)
+        if selector is None or selector == "default":
+            try:
+                return copy.deepcopy(getattr(bit, "defaults", {}) or {})
+            except Exception:  # pragma: no cover
+                return getattr(bit, "defaults", {}) or {}
+
         preset = self._select_preset(bit, selector)
         if not preset:
             return {}
@@ -311,7 +561,9 @@ class RegistryFile(Registry):
 
         # queries overlay (evaluated and exposed into variables) with merge semantics
         # Base queries from defaults (AST), if provided
-        defaults_raw = getattr(bit, "_defaults_raw", {})  # pylint: disable=protected-access
+        defaults_raw = getattr(
+            bit, "_defaults_raw", {}
+        )  # pylint: disable=protected-access
         q_base = {}
         if isinstance(defaults_raw, dict):
             if "queries" in defaults_raw:
@@ -328,7 +580,9 @@ class RegistryFile(Registry):
         overrides = preset.get("overrides") or []
         if overrides:
             if not q_merged:
-                raise ValueError("Preset overrides require 'queries' (from defaults or preset).")
+                raise ValueError(
+                    "Preset overrides require 'queries' (from defaults or preset)."
+                )
             for ov in overrides:
                 path = ov.get("path")
                 value = ov.get("value")
@@ -346,7 +600,7 @@ class RegistryFile(Registry):
 
         # Allow paths prefixed with 'queries.' even when root is already the queries map
         if path.startswith("queries."):
-            path = path[len("queries."):]
+            path = path[len("queries.") :]
 
         cur = root
         tokens = path.split(".")
@@ -376,6 +630,86 @@ class RegistryFile(Registry):
                 if not isinstance(cur, list) or not (0 <= index < len(cur)):
                     raise ValueError(f"Override list index out of range: {path}")
                 cur = cur[index]
+
+    def _apply_path_override_plain(self, root: dict, path: str, value):
+        """Apply path override without implicit 'queries.' stripping.
+
+        Path tokens support dot access and 1-based list indices in brackets, e.g.:
+        blocks[2].where.name
+        """
+        import re
+
+        cur = root
+        tokens = path.split(".")
+        for i, tok in enumerate(tokens):
+            m = re.match(r"^([A-Za-z0-9_]+)(?:\[(\d+)\])?$", tok)
+            if not m:
+                raise ValueError(f"Invalid override path token: {tok}")
+            key = m.group(1)
+            idx = m.group(2)
+            if key not in cur:
+                raise ValueError(f"Override path not found: {path}")
+            if i == len(tokens) - 1:
+                target = cur[key]
+                if idx is not None:
+                    index = int(idx) - 1
+                    if not isinstance(target, list) or not (0 <= index < len(target)):
+                        raise ValueError(f"Override list index out of range: {path}")
+                    target[index] = value
+                else:
+                    cur[key] = value
+                return
+            cur = cur[key]
+            if idx is not None:
+                index = int(idx) - 1
+                if not isinstance(cur, list) or not (0 <= index < len(cur)):
+                    raise ValueError(f"Override list index out of range: {path}")
+                cur = cur[index]
+
+    @staticmethod
+    def _deep_merge_extends(base: dict, override: dict) -> dict:
+        """Deep merge for target extends semantics.
+
+        - Dicts: deep-merge recursively
+        - Lists: index-wise merge when both are lists
+            - If both items are dicts, merge dicts recursively
+            - Otherwise, override item replaces base at that index
+            - Extra items in override are appended; base extras are preserved
+        - Scalars: override replaces base
+        """
+        import copy as _copy
+
+        if base is None:
+            return _copy.deepcopy(override)
+        if override is None:
+            return _copy.deepcopy(base)
+
+        if isinstance(base, dict) and isinstance(override, dict):
+            out = {**_copy.deepcopy(base)}
+            for k, v in override.items():
+                if k in out:
+                    out[k] = RegistryFile._deep_merge_extends(out[k], v)
+                else:
+                    out[k] = _copy.deepcopy(v)
+            return out
+        if isinstance(base, list) and isinstance(override, list):
+            out_list = []
+            max_len = max(len(base), len(override))
+            for i in range(max_len):
+                if i < len(base) and i < len(override):
+                    b_i = base[i]
+                    o_i = override[i]
+                    if isinstance(b_i, dict) and isinstance(o_i, dict):
+                        out_list.append(RegistryFile._deep_merge_extends(b_i, o_i))
+                    else:
+                        out_list.append(_copy.deepcopy(o_i))
+                elif i < len(override):
+                    out_list.append(_copy.deepcopy(override[i]))
+                else:
+                    out_list.append(_copy.deepcopy(base[i]))
+            return out_list
+        # Fallback: replace
+        return _copy.deepcopy(override)
 
     def _filter_bits_with_where(
         self, coll: Collection[Bit], where: WhereBitsModel
@@ -488,7 +822,9 @@ class RegistryFile(Registry):
         # Prepare base context (static only). Avoid resolving legacy top-level blocks/constants here;
         # they are handled via queries mapping below.
         raw_context = data.context or {}
-        base_context_input = {k: v for k, v in raw_context.items() if k not in ["blocks", "constants"]}
+        base_context_input = {
+            k: v for k, v in raw_context.items() if k not in ["blocks", "constants"]
+        }
         try:
             context: dict = self._resolve_context(base_context_input)
         except Exception as err:
@@ -518,7 +854,8 @@ class RegistryFile(Registry):
             context.update(composed_vars)
 
         dest: Path = self._resolve_path(data.dest or ".")
-        dest = dest / f"{self._path.stem}-{name}.pdf" if dest.suffix == "" else dest
+        # If dest is a directory, keep as directory; Target will name <name>.pdf
+        # This preserves stable, readable naming and aligns with tests.
 
         target: Target = Target(template, context, dest, name=name, tags=tags)
         return target
@@ -602,7 +939,9 @@ class RegistryFile(Registry):
                 flat_list = res
 
             # Dedupe if requested
-            if dedupe in ("by:id", "by:name", "by:hash") and isinstance(flat_list, list):
+            if dedupe in ("by:id", "by:name", "by:hash") and isinstance(
+                flat_list, list
+            ):
                 seen = set()
 
                 def key_fn(x):
@@ -654,7 +993,11 @@ class RegistryFile(Registry):
                     if merge == "concat":
                         agg = []
                         for lst in src_lists:
-                            if isinstance(lst, list) and lst and isinstance(lst[0], list):
+                            if (
+                                isinstance(lst, list)
+                                and lst
+                                and isinstance(lst[0], list)
+                            ):
                                 agg.extend([item for sub in lst for item in sub])
                             else:
                                 agg.extend(lst)
@@ -662,7 +1005,11 @@ class RegistryFile(Registry):
                         # normalize to list-of-lists
                         norm_lists = []
                         for lst in src_lists:
-                            if isinstance(lst, list) and lst and isinstance(lst[0], list):
+                            if (
+                                isinstance(lst, list)
+                                and lst
+                                and isinstance(lst[0], list)
+                            ):
                                 norm_lists.extend(lst)
                             else:
                                 norm_lists.append(list(lst))

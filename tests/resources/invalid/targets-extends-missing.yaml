@@ -1,0 +1,3 @@
+targets:
+  - name: Derived
+    extends: "Nope"

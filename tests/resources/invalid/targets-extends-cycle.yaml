@@ -1,0 +1,5 @@
+targets:
+  - name: A
+    extends: "B"
+  - name: B
+    extends: "A"

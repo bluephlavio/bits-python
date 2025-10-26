@@ -81,16 +81,15 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-poetry-
     
-    - name: Install pdflatex
+    - name: Install minimal TeX (pdflatex)
       run: |
         sudo apt-get update
-        sudo apt-get install -y texlive-latex-base texlive-latex-recommended texlive-fonts-recommended
+        sudo apt-get install -y texlive-latex-base
 
     - name: Install the package
       uses: ./.github/actions/install-package
 
-    - name: Create .bitsrc file
-      uses: ./.github/actions/create-bitsrc
+    # BITS_CONFIG overrides config location for tests
 
     - name: Test
       uses: ./.github/actions/test

@@ -1,0 +1,34 @@
+[variables]
+# Where to write generated outputs in tests
+artifacts = tests/artifacts
+# Where test templates live
+templates = tests/resources/templates
+
+[jinja]
+# Comma/newline separated plugin files. Leave empty for defaults.
+plugins =
+
+[preview]
+# Default output directory for `bits preview` (overridable via --out)
+out_dir = tests/artifacts/preview
+# Artifact types: set either/both to true; CLI flags override
+pdf = false
+tex = true
+# Naming strategy for preview outputs: readable | uuid | timestamped
+naming = readable
+
+[preview.templates]
+# Optional: override preview templates (leave blank to use packaged defaults)
+; bitsfile = ${templates}/preview/bitsfile-preview.tex.j2
+; bit      = ${templates}/preview/bit-preview.tex.j2
+
+[output]
+# Defaults for `bits build` (targets) when no flags are provided
+pdf = true
+tex = false
+# Keep LaTeX intermediates: none | errors | all
+keep_intermediates = none
+# Where to collect intermediates (when kept)
+intermediates_dir  = .bitsout/_build
+# Temporary working dir for LaTeX runs
+build_dir          = .bitsout/_tmp
