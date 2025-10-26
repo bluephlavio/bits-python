@@ -1,3 +1,24 @@
+## v0.17.0 (2025-10-26)
+
+### Feat
+
+- Implement target inheritance and overrides in configuration files
+- Enhance configuration and output management for testing and rendering
+- Update CI workflow to install minimal TeX and enhance PDF generation tests
+- Add unique naming strategy for output files and enhance template rendering
+- Add environment variable support for BITS_CONFIG and update test configurations
+- Enhance CLI with preview command and improve rendering options; update presets handling and add tests
+
+### Fix
+
+- Implement default preset handling and update tests for precedence merge
+- Prevent cache update for tex-only output to allow subsequent PDF builds
+- Preserve directory structure for destination paths in target naming
+
+### Refactor
+
+- Improve code readability by formatting and restructuring return statements across multiple files
+
 ## v0.16.0 (2025-10-23)
 
 ### Feat
