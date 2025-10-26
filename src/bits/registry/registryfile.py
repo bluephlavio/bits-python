@@ -111,6 +111,24 @@ class RegistryFile(Registry):
                     f"Could not resolve bit defaults: \n\n{bit.defaults}\n"
                 ) from err
 
+        # Ensure a tool-defined "default" preset exists and is not user-defined
+        for bit in self._bits:
+            try:
+                presets = getattr(bit, "presets", []) or []
+                # Drop any user-defined preset named 'default' (case-sensitive)
+                filtered = [p for p in presets if p.get("name") != "default" and p.get("id") != "default"]
+                if len(filtered) != len(presets):
+                    warnings.warn(
+                        "User-defined preset named 'default' is ignored; the tool creates it automatically.",
+                        DeprecationWarning,
+                    )
+                # Prepend a synthetic default preset
+                synthetic_default = {"name": "default"}
+                bit.presets = [synthetic_default, *filtered]
+            except Exception:
+                # Be resilient if metadata is malformed; leave presets as-is
+                pass
+
     def _load_constants(
         self, constant_models: List[ConstantModel], common_tags: List[str]
     ):
@@ -522,6 +540,14 @@ class RegistryFile(Registry):
         resolved queries like blocks/constants). For queries lists, replacement semantics
         apply (preset-provided lists replace defaults silently at this overlay level).
         """
+        # Treat no selector or 'default' as the tool-provided default preset:
+        # expose the bit's resolved defaults (context + resolved queries)
+        if selector is None or selector == "default":
+            try:
+                return copy.deepcopy(getattr(bit, "defaults", {}) or {})
+            except Exception:  # pragma: no cover
+                return getattr(bit, "defaults", {}) or {}
+
         preset = self._select_preset(bit, selector)
         if not preset:
             return {}

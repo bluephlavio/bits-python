@@ -18,5 +18,7 @@ def test_defaults_preset_with_precedence_merge():
     assert len(blocks) == 1
     ctx = blocks[0].context
     assert ctx["nested"]["x"] == 9
-    assert ctx["nested"]["y"] == 2
-    assert ctx["nested"]["z"] == 3
+    # Under new semantics, the tool-provided 'default' preset reflects
+    # the bit's defaults without user-defined overrides
+    assert ctx["nested"]["y"] == 1
+    assert "z" not in ctx["nested"]
