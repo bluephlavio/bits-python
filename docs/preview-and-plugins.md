@@ -15,7 +15,7 @@ Jinja Plugin Loader
   - [jinja]
     plugins = ./filters/math_filters.py, ./filters/school_filters.py
 - CLI option to disable plugins: `--no-plugins` (for both `build` and `preview`).
-- Load order: built‑in filters first, then plugins; later definitions override earlier ones.
+- Load order: plugins are loaded in the order declared; later definitions override earlier ones.
 
 Preview Builds
 - Command: `bits preview <spec> [--out DIR] [--pdf|--tex|--both] [--no-plugins]`.
@@ -27,6 +27,9 @@ Preview Builds
 - Templates:
   - Bitsfile: `src/bits/config/templates/preview.tex.j2`
   - Single bit: `src/bits/config/templates/bit-preview.tex.j2`
+  - Both can be overridden in `.bitsrc` under `[preview.templates]`:
+    - bitsfile = /abs/path/to/preview.tex.j2
+    - bit      = /abs/path/to/bit-preview.tex.j2
 - Output naming (readable, stable):
   - Bitsfile: `<bitsfileSlug>.tex` (and `.pdf` if requested)
   - Bit: `<bitsfileSlug>__<bitSlug>__n-<num>__p-<preset>.tex`
@@ -50,6 +53,14 @@ Config Basics (.bitsrc)
     templates = /abs/path/to/tests/resources/templates
   - [jinja]
     plugins = ./filters/math_filters.py
+  - [preview]
+    out_dir = .bitsout/preview
+    pdf = false
+    tex = true
+  - [preview.templates]
+    # Optional, leave blank to use packaged defaults
+    ; bitsfile = ${variables:templates}/preview/bitsfile-preview.tex.j2
+    ; bit      = ${variables:templates}/preview/bit-preview.tex.j2
 
 Best Practices for Config and Tests
 - Package defaults:
@@ -75,4 +86,3 @@ Examples
   - `bits build tests/resources/bits-presets.yaml::t1 --both`
 - Keep intermediates on success:
   - `bits build tests/resources/bits-presets.yaml --pdf --keep-intermediates all --intermediates-dir .bitsout/_build --build-dir .bitsout/_tmp`
-

@@ -279,6 +279,8 @@ The **bits** package offers a robust, scalable, and flexible solution for educat
   - `extends: ["Base A", "Base B"]`
   - `extends: "path/file.yml::Base"` (cross‑file)
 - Fields inherited and merged (left→right, last wins): `template`, `dest`, `context`, `queries`, `compose`.
+  - Dicts: deep‑merge recursively.
+  - Lists: index‑wise merge when both are lists. If both items are dicts, merge those dicts; otherwise, the overriding list item replaces the base at that index. Extra items in the longer list are appended; base extras are preserved.
 - The derived target may override any of those fields and apply path‑based `overrides` after the merge. Example:
 
 ```yaml
@@ -310,3 +312,28 @@ Errors and validation
 - Unknown base in `extends` → clear error with available targets.
 - Cycle in `extends` → error with the chain involved.
 - Bad `overrides.path` (missing key/index) → error identifying the path.
+
+Path overrides — remove semantics
+
+- You can remove a list item or a mapping key with `op: remove` in an override. Paths use dot notation and 1‑based list indices (same as updates):
+
+```yaml
+overrides:
+  # Remove 2nd block from queries
+  - path: "queries.blocks[2]"
+    op: remove
+
+  # Remove a context key
+  - path: "context.hints"
+    op: remove
+```
+
+- Behavior:
+  - Lists: pop the indexed item (1‑based). Out‑of‑range → no‑op with a warning.
+  - Dicts: delete the key if present; missing key → no‑op with a warning.
+  - Regular overrides (without `op`) keep current replace/deep‑merge semantics and still error on bad paths.
+
+Filters via plugins
+
+- Jinja filters are provided by your project’s plugins. Declare them in `.bitsrc` under `[jinja]`:
+  `plugins = ./filters/custom.py`. Use `--no-plugins` to disable plugin loading.

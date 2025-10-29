@@ -6,7 +6,7 @@ templates = tests/resources/templates
 
 [jinja]
 # Comma/newline separated plugin files. Leave empty for defaults.
-plugins =
+plugins = ${variables:templates}/../plugins/default_filters.py
 
 [preview]
 # Default output directory for `bits preview` (overridable via --out)

@@ -30,7 +30,7 @@ Module Map
 - Rendering & templating
   - `src/bits/env.py` — Jinja2 environment. LaTeX-friendly delimiters:
     `\BLOCK{...}` and `\VAR{...}`; registers filters.
-  - `src/bits/filters.py` — `pick`, `render`, `enumerate`, `show`, `ceil`,
+  - Plugins (declared in `.bitsrc`) — provide filters like `pick`, `render`, `enumerate`, `show`, `ceil`,
     `floor`, `getitem`.
   - `src/bits/renderer.py` — TeX generation, LaTeX compile (`pdflatex`),
     content-hash cache, error extraction.

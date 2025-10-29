@@ -4,7 +4,7 @@ Purpose
 
 Add a New Filter
 
-- Implement function in `src/bits/filters.py`.
+  Implement Jinja filters in your plugin file (e.g., `plugins/filters.py`) and register via `.bitsrc` under `[jinja] plugins`.
 - Register it in `EnvironmentFactory.get()` in `src/bits/env.py`:
 
 ```python
@@ -68,4 +68,3 @@ Testing Checklist
 - Unit tests for new code paths.
 - Roundtrip tests for parser/dumper.
 - E2E smoke where applicable (build, convert).
-

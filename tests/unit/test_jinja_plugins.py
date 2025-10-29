@@ -39,5 +39,6 @@ def test_jinja_plugin_missing_file_is_ignored():
     EnvironmentFactory.enable_plugins(True)
 
     env = EnvironmentFactory.get()
-    # Missing plugin should not raise, and built-ins still available
-    assert "pick" in env.filters
+    # Missing plugin should not raise; environment is created without built-ins
+    assert isinstance(env.filters, dict)
+    assert "pick" not in env.filters

@@ -233,14 +233,17 @@ jinja_plugins/     # instead of plugins/
 ## 4) Key tools (use thoughtfully)
 
 * Presets (bits): curated versions of `defaults`. Maps deep‑merge; lists
-  replace; `overrides.path` for micro‑patches.
+  replace; `overrides.path` for micro‑patches. Use `op: remove` to delete a
+  list item (1‑based) or a mapping key.
 * `with` (in sub‑queries): set the same parameter for all results; for
   per‑item differences, split into multiple sub‑queries.
 * Compose: set `flatten: true` when you get list‑of‑lists; `merge:
   concat|interleave` controls ordering.
 * Extends (targets): single/multi inheritance including cross‑file; left→right,
   last‑wins; then apply derived overrides.
-* Jinja plugins: local filters (`register(env)`), loaded via `.bitsrc`.
+* Jinja plugins: local filters (`register(env)`), loaded via `.bitsrc`. Built‑ins
+  are always available (`pick`, `render`, `enumerate`, `show`, `ceil`, `floor`,
+  `getitem`).
 
 ---
 
@@ -396,4 +399,3 @@ targets:
 When in doubt about “where does this go?”, use the rule of thumb:
 parameters/variants → YAML · layout → template · graphics → macros · reuse →
 extends · public export → `index.yml`.
-

@@ -13,7 +13,6 @@ Quick Repo Map
   - `target.py` — Full document to render (template + context + dest).
   - `renderer.py` — LaTeX/TeX rendering, caching, PDF writing.
   - `env.py` — Jinja2 environment with LaTeX-friendly delimiters + filters.
-  - `filters.py` — Built-in Jinja filters (e.g., `pick`, `render`).
   - `registry/` — Registry abstraction and `RegistryFile` (YAML/Markdown),
     parse/dump factories, watch integration.
   - `models/` — Pydantic models for registries, bits, targets, constants.
@@ -73,8 +72,6 @@ Feature Proposal Template (RFC)
 
 How to Extend
 
-- New filter: add function to `src/bits/filters.py`, register in
-  `EnvironmentFactory` (`src/bits/env.py`), add unit tests and doc examples.
 - New template: place `.tex.j2` under your templates folder; point a target’s
   `template:` to it or set a default in `.bitsrc`/`~/.bits/config.ini`.
 - New query field: update the relevant pydantic model in `src/bits/models/`
