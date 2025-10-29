@@ -12,7 +12,7 @@ from .helpers import initialize_registry, watch_for_changes
 from ..env import EnvironmentFactory
 from ..renderer import Renderer
 from ..helpers import write as _write
-from ..config import config
+from ..config import config, load_config_file
 from ..registry.registryfile import RegistryFile as _RegistryFile
 from ..block import Block
 from ..helpers import normalize_path
@@ -77,7 +77,16 @@ def common(
         help="Show the version and exit",
     ),
 ):  # pylint: disable=unused-argument
-    pass
+    # Ensure env-var provided config is merged even if the module was imported
+    # before the environment variable was set (e.g., in tests).
+    import os
+    try:
+        cfg = os.environ.get("BITS_CONFIG")
+        if cfg:
+            load_config_file(Path(cfg))
+    except Exception:
+        # Be forgiving; CLI will proceed with existing config
+        pass
 
 
 @app.command(name="build")
@@ -225,6 +234,7 @@ def _parse_preview_spec(spec: str):
     # Handle target form '::' elsewhere (not supported here)
     if ":" in spec and not "::" in spec:
         path, rest = spec.split(":", 1)
+        idx = None
         # If quoted name
         if rest.startswith('"'):
             m = re.match(r'^"([^"]+)"(.*)$', rest)

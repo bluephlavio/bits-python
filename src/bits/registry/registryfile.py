@@ -320,7 +320,22 @@ class RegistryFile(Registry):
                     for ov in base_overrides:
                         path = ov.get("path")
                         value = ov.get("value")
+                        op = ov.get("op")
                         if not path:
+                            continue
+                        if op == "remove":
+                            if path.startswith("queries."):
+                                self._remove_path_override(qmap, path)
+                            elif path.startswith("context."):
+                                self._remove_path_override_plain(
+                                    cmap, path[len("context.") :]
+                                )
+                            elif path.startswith("compose."):
+                                self._remove_path_override_plain(
+                                    compmap, path[len("compose.") :]
+                                )
+                            else:
+                                self._remove_path_override(qmap, path)
                             continue
                         if path.startswith("queries."):
                             self._apply_path_override(qmap, path, value)
@@ -361,7 +376,23 @@ class RegistryFile(Registry):
             for ov in overrides:
                 path = ov.get("path")
                 value = ov.get("value")
+                op = ov.get("op")
                 if not path:
+                    continue
+                if op == "remove":
+                    if path.startswith("queries."):
+                        self._remove_path_override(qmap, path)
+                    elif path.startswith("context."):
+                        self._remove_path_override_plain(
+                            cmap, path[len("context.") :]
+                        )
+                    elif path.startswith("compose."):
+                        self._remove_path_override_plain(
+                            compmap, path[len("compose.") :]
+                        )
+                    else:
+                        # Default to queries if no explicit prefix
+                        self._remove_path_override(qmap, path)
                     continue
                 if path.startswith("queries."):
                     self._apply_path_override(qmap, path, value)
@@ -586,9 +617,13 @@ class RegistryFile(Registry):
             for ov in overrides:
                 path = ov.get("path")
                 value = ov.get("value")
+                op = ov.get("op")
                 if not path:
                     continue
-                self._apply_path_override(q_merged, path, value)
+                if op == "remove":
+                    self._remove_path_override(q_merged, path)
+                else:
+                    self._apply_path_override(q_merged, path, value)
 
         if q_merged:
             out.update(self._resolve_inline_queries(q_merged))
@@ -658,6 +693,102 @@ class RegistryFile(Registry):
                     target[index] = value
                 else:
                     cur[key] = value
+                return
+            cur = cur[key]
+            if idx is not None:
+                index = int(idx) - 1
+                if not isinstance(cur, list) or not (0 <= index < len(cur)):
+                    raise ValueError(f"Override list index out of range: {path}")
+                cur = cur[index]
+
+    def _remove_path_override(self, root: dict, path: str) -> None:
+        """Remove a value at a given path.
+
+        Behaves like _apply_path_override but removes the targeted key or list item.
+        For list indices or keys that don't exist, emits a warning and no-ops.
+        """
+        import re
+        import warnings
+
+        # Allow paths prefixed with 'queries.' even when root is already the queries map
+        if path.startswith("queries."):
+            path = path[len("queries.") :]
+
+        if not path:
+            warnings.warn("Remove override on root is ignored (no-op)")
+            return
+
+        cur = root
+        tokens = path.split(".")
+        for i, tok in enumerate(tokens):
+            m = re.match(r"^([A-Za-z0-9_]+)(?:\[(\d+)\])?$", tok)
+            if not m:
+                raise ValueError(f"Invalid override path token: {tok}")
+            key = m.group(1)
+            idx = m.group(2)
+            if key not in cur:
+                # Missing target at final step: warn + no-op; otherwise error
+                if i == len(tokens) - 1:
+                    warnings.warn(f"Remove override path not found (no-op): {path}")
+                    return
+                raise ValueError(f"Override path not found: {path}")
+            if i == len(tokens) - 1:
+                # Final token: remove value (possibly list item)
+                if idx is not None:
+                    target_list = cur[key]
+                    index = int(idx) - 1
+                    if not isinstance(target_list, list) or not (0 <= index < len(target_list)):
+                        warnings.warn(
+                            f"Remove override list index out of range (no-op): {path}"
+                        )
+                        return
+                    target_list.pop(index)
+                else:
+                    # Remove key from mapping if present
+                    cur.pop(key, None)
+                return
+            # Intermediate navigation
+            cur = cur[key]
+            if idx is not None:
+                index = int(idx) - 1
+                if not isinstance(cur, list) or not (0 <= index < len(cur)):
+                    raise ValueError(f"Override list index out of range: {path}")
+                cur = cur[index]
+
+    def _remove_path_override_plain(self, root: dict, path: str) -> None:
+        """Remove a value at a given path without implicit 'queries.' stripping."""
+        import re
+        import warnings
+
+        if not path:
+            warnings.warn("Remove override on root is ignored (no-op)")
+            return
+
+        cur = root
+        tokens = path.split(".")
+        for i, tok in enumerate(tokens):
+            m = re.match(r"^([A-Za-z0-9_]+)(?:\[(\d+)\])?$", tok)
+            if not m:
+                raise ValueError(f"Invalid override path token: {tok}")
+            key = m.group(1)
+            idx = m.group(2)
+            if key not in cur:
+                if i == len(tokens) - 1:
+                    warnings.warn(f"Remove override path not found (no-op): {path}")
+                    return
+                raise ValueError(f"Override path not found: {path}")
+            if i == len(tokens) - 1:
+                if idx is not None:
+                    target_list = cur[key]
+                    index = int(idx) - 1
+                    if not isinstance(target_list, list) or not (0 <= index < len(target_list)):
+                        warnings.warn(
+                            f"Remove override list index out of range (no-op): {path}"
+                        )
+                        return
+                    target_list.pop(index)
+                else:
+                    cur.pop(key, None)
                 return
             cur = cur[key]
             if idx is not None:

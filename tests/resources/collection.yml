@@ -26,5 +26,7 @@ bits:
     - registry: ./folder-with-index
   src: |
     \begin{enumerate}
-      \item \VAR{ blocks|render }
+    \BLOCK{ for b in blocks }
+      \item \VAR{ b.render() }
+    \BLOCK{ endfor }
     \end{enumerate}

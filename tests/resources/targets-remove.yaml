@@ -1,0 +1,34 @@
+targets:
+  - name: Base
+    template: ${templates}/minimal.tex.j2
+    dest: ${artifacts}
+    context:
+      title: Base
+    queries:
+      blocks:
+        - where: { name: Q1 }
+        - where: { name: Q2 }
+        - where: { name: Q3 }
+    compose:
+      blocks: { flatten: true, merge: concat, as: blocks }
+
+  - name: Derived Remove Second
+    extends: "Base"
+    overrides:
+      - path: "queries.blocks[2]"
+        op: remove
+
+  - name: Derived Remove OOR
+    extends: "Base"
+    overrides:
+      - path: "queries.blocks[99]"
+        op: remove
+
+bits:
+  - name: Q1
+    src: Q1
+  - name: Q2
+    src: Q2
+  - name: Q3
+    src: Q3
+

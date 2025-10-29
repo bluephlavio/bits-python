@@ -47,12 +47,11 @@ Templates & Filters
 - Jinja delimiters are LaTeX friendly:
   - Blocks: `\BLOCK{ ... }`
   - Vars: `\VAR{ ... }`
-- Built-in filters (`src/bits/filters.py`):
+- Filters are provided by your Jinja plugins (declared in `.bitsrc`). Common ones used in examples:
   - `pick(items, picklist, start=1)` — select positions.
   - `enumerate(items, opts="")` — produce a LaTeX enumerate.
   - `render(item)` — render a `Block` or return the item.
   - `show(items, single_item_template, preamble, opts)` — single vs list view.
-  - `ceil`, `floor`, `getitem` — simple utilities.
 
 YAML/Markdown Registries
 
@@ -115,4 +114,3 @@ Error Reporting
 
 - Structured exceptions in `src/bits/exceptions.py` and pretty output in
   `src/bits/cli/helpers.py` with categories, suggestions, and cause chains.
-

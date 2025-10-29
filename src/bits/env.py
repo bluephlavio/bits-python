@@ -8,8 +8,6 @@ import importlib.util
 import warnings
 
 from jinja2 import Environment, FileSystemLoader
-
-from .filters import *  # pylint: disable=wildcard-import
 from .config import config
 
 
@@ -130,14 +128,6 @@ class EnvironmentFactory:
             trim_blocks=True,
             autoescape=False,
         )
-
-        env.filters["floor"] = floor_filter
-        env.filters["ceil"] = ceil_filter
-        env.filters["getitem"] = getitem_filter
-        env.filters["pick"] = pick_filter
-        env.filters["render"] = render_filter
-        env.filters["enumerate"] = enumerate_filter
-        env.filters["show"] = show_filter
 
         # Load user plugins last; allow overrides with warning emitted by plugin if desired
         cls._load_plugins(env)
