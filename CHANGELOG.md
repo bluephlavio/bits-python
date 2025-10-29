@@ -1,3 +1,10 @@
+## v0.18.0 (2025-10-29)
+
+### Feat
+
+- Introduce support for path-based overrides with removal operations in registry and enhance documentation
+- Add TOML configuration support and related tests
+
 ## v0.17.0 (2025-10-26)
 
 ### Feat
