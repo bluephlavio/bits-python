@@ -12,6 +12,9 @@ class TargetModel(BaseModel):  # pylint: disable=too-few-public-methods
     queries: dict = {}
     # Compose options for named queries or aggregations
     compose: dict = {}
+    # Optional per-node merge policy: { context: deep|replace, queries: deep|replace }
+    # Defaults to deep; validated at runtime by resolver for allowed values.
+    merge: dict = {}
     # Optional inheritance mechanism: this target extends one or more base targets
     # Accepts: string (single), list of strings, possibly cross-file refs: "path/file.yml::Name"
     extends: str | list[str] | None = None

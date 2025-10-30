@@ -1,0 +1,68 @@
+targets:
+  - name: Base MP
+    template: ${templates}/minimal.tex.j2
+    dest: ${artifacts}
+    context:
+      title: Base Title
+      subtitle: S
+    queries:
+      blocks:
+        - where: { name: Q1 }
+          metadata: { pts: [1, 2, 3] }
+        - where: { name: Q2 }
+          metadata: { pts: [4, 5, 6] }
+    compose:
+      blocks: { flatten: true, merge: concat, as: blocks }
+
+  - name: Derived Replace Queries
+    extends: ["Base MP"]
+    merge: { queries: replace }
+    queries:
+      blocks:
+        - where: { name: Q3 }
+    compose:
+      blocks: { flatten: true, merge: concat, as: blocks }
+
+  - name: Derived Replace Context
+    extends: ["Base MP"]
+    merge: { context: replace }
+    context:
+      title: New Title
+    compose:
+      blocks: { flatten: true, merge: concat, as: blocks }
+
+  - name: Derived Merge Override
+    template: ${templates}/meta.tex.j2
+    dest: ${artifacts}
+    extends: ["Base MP"]
+    overrides:
+      # Deep-merge into second block: change where.name and partially override pts
+      - path: "queries.blocks[2]"
+        op: merge
+        value:
+          where: { name: Q3 }
+          metadata: { pts: [9, 9] }
+    compose:
+      blocks: { flatten: true, merge: concat, as: blocks }
+
+  - name: Derived Root Replace Queries
+    extends: ["Base MP"]
+    overrides:
+      - path: "queries"
+        op: replace
+        value:
+          blocks:
+            - where: { name: Q4 }
+    compose:
+      blocks: { flatten: true, merge: concat, as: blocks }
+
+bits:
+  - name: Q1
+    src: Q1
+  - name: Q2
+    src: Q2
+  - name: Q3
+    src: Q3
+  - name: Q4
+    src: Q4
+

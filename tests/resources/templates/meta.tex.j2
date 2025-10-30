@@ -1,0 +1,10 @@
+\documentclass{article}
+\begin{document}
+\section*{\VAR{ title or "Document" }}
+\begin{enumerate}
+\BLOCK{ for block in blocks }
+  \item \VAR{ block.render() } [\VAR{ block.metadata.get("pts") }]
+\BLOCK{ endfor }
+\end{enumerate}
+\end{document}
+

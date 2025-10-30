@@ -1,0 +1,39 @@
+constants:
+  - name: Costante di gravitazione universale
+    tags: [gravitazione]
+    symbol: $G$
+    value: $\SI{6.67e-11}{\cubic\meter\per\kilogram\per\squared\second}$
+  - name: Velocità della luce nel vuoto
+    tags: [ottica]
+    symbol: $c$
+    value: $\SI{3.00e8}{\meter\per\second}$
+
+targets:
+  - name: Preset Merge Replace
+    template: ${templates}/minimal.tex.j2
+    dest: ${artifacts}
+    context:
+      title: Preset Merge
+    queries:
+      blocks:
+        - where:
+            name: UseConst
+          preset: replace
+    compose:
+      blocks: { flatten: true, merge: concat, as: blocks }
+
+bits:
+  - name: UseConst
+    defaults:
+      context: {}
+      queries:
+        constants:
+          where: { name: "Velocità della luce nel vuoto" }
+    presets:
+      - name: replace
+        merge: { queries: replace }
+        queries:
+          constants:
+            where: { name: "Costante di gravitazione universale" }
+    src: |
+      Const: \VAR{ constants[0].symbol }
