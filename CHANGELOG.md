@@ -1,3 +1,9 @@
+## v0.19.0 (2025-11-04)
+
+### Feat
+
+- Implement merge policy and override operations in targets and presets with comprehensive tests and documentation
+
 ## v0.18.0 (2025-10-29)
 
 ### Feat
