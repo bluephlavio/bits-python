@@ -320,8 +320,26 @@ class RegistryFile(Registry):
                     for ov in base_overrides:
                         path = ov.get("path")
                         value = ov.get("value")
-                        op = ov.get("op")
+                        op = ov.get("op") or "set"
                         if not path:
+                            continue
+                        # Root-level handling for queries/context/compose
+                        if path in ("queries", "context", "compose"):
+                            if op == "remove":
+                                base_merged.pop(path, None)
+                            elif op == "clear":
+                                base_merged[path] = (
+                                    {} if isinstance(base_merged.get(path), dict) else []
+                                )
+                            elif op in ("set", "replace"):
+                                base_merged[path] = copy.deepcopy(value)
+                            elif op == "merge":
+                                base = base_merged.get(
+                                    path, {} if isinstance(value, dict) else []
+                                )
+                                base_merged[path] = self._deep_merge_extends(base, value)
+                            else:
+                                raise ValueError(f"Unknown override op: {op}")
                             continue
                         if op == "remove":
                             if path.startswith("queries."):
@@ -337,33 +355,86 @@ class RegistryFile(Registry):
                             else:
                                 self._remove_path_override(qmap, path)
                             continue
-                        if path.startswith("queries."):
-                            self._apply_path_override(qmap, path, value)
-                        elif path.startswith("context."):
-                            self._apply_path_override_plain(
-                                cmap, path[len("context.") :], value
-                            )
-                        elif path.startswith("compose."):
-                            self._apply_path_override_plain(
-                                compmap, path[len("compose.") :], value
-                            )
+                        if op in ("set", "replace"):
+                            if path.startswith("queries."):
+                                self._apply_path_override(qmap, path, value)
+                            elif path.startswith("context."):
+                                self._apply_path_override_plain(
+                                    cmap, path[len("context.") :], value
+                                )
+                            elif path.startswith("compose."):
+                                self._apply_path_override_plain(
+                                    compmap, path[len("compose.") :], value
+                                )
+                            else:
+                                self._apply_path_override(qmap, path, value)
+                        elif op == "merge":
+                            if path.startswith("queries."):
+                                self._apply_path_merge(qmap, path, value)
+                            elif path.startswith("context."):
+                                self._apply_path_merge_plain(
+                                    cmap, path[len("context.") :], value
+                                )
+                            elif path.startswith("compose."):
+                                self._apply_path_merge_plain(
+                                    compmap, path[len("compose.") :], value
+                                )
+                            else:
+                                self._apply_path_merge(qmap, path, value)
+                        elif op == "clear":
+                            if path.startswith("queries."):
+                                self._apply_path_clear(qmap, path)
+                            elif path.startswith("context."):
+                                self._apply_path_clear_plain(cmap, path[len("context.") :])
+                            elif path.startswith("compose."):
+                                self._apply_path_clear_plain(
+                                    compmap, path[len("compose.") :]
+                                )
+                            else:
+                                self._apply_path_clear(qmap, path)
                         else:
-                            self._apply_path_override(qmap, path, value)
+                            raise ValueError(f"Unknown override op: {op}")
 
-        # Apply current model fields on top of merged bases
-        current_spec = {}
+        # Apply current model fields on top of merged bases with optional merge policy
+        merged = copy.deepcopy(base_merged)
+        # Simple fields override
         if model.template is not None:
-            current_spec["template"] = model.template
+            merged["template"] = model.template
         if model.dest is not None:
-            current_spec["dest"] = model.dest
-        if getattr(model, "context", None):
-            current_spec["context"] = copy.deepcopy(model.context)
-        if getattr(model, "queries", None):
-            current_spec["queries"] = copy.deepcopy(model.queries)
-        if getattr(model, "compose", None):
-            current_spec["compose"] = copy.deepcopy(model.compose)
+            merged["dest"] = model.dest
 
-        merged = self._deep_merge_extends(base_merged, current_spec)
+        # Merge policy
+        m = getattr(model, "merge", None) or {}
+        m_ctx = (m.get("context") or "deep") if isinstance(m, dict) else "deep"
+        m_q = (m.get("queries") or "deep") if isinstance(m, dict) else "deep"
+        # Validate values when present
+        for _k, _v in (("context", m_ctx), ("queries", m_q)):
+            if _v not in ("deep", "replace"):
+                raise ValueError(f"Invalid merge value for '{_k}': {_v}")
+
+        # Context
+        if m_ctx == "replace":
+            merged["context"] = copy.deepcopy(getattr(model, "context", None) or {})
+        else:
+            if getattr(model, "context", None):
+                merged["context"] = self._deep_merge_extends(
+                    merged.get("context", {}), copy.deepcopy(model.context)
+                )
+
+        # Queries
+        if m_q == "replace":
+            merged["queries"] = copy.deepcopy(getattr(model, "queries", None) or {})
+        else:
+            if getattr(model, "queries", None):
+                merged["queries"] = self._deep_merge_extends(
+                    merged.get("queries", {}), copy.deepcopy(model.queries)
+                )
+
+        # Compose (no policy; preserve current deep behavior)
+        if getattr(model, "compose", None):
+            merged["compose"] = self._deep_merge_extends(
+                merged.get("compose", {}), copy.deepcopy(model.compose)
+            )
 
         # Apply overrides from this model only (after merge)
         overrides = getattr(model, "overrides", None) or []
@@ -376,9 +447,24 @@ class RegistryFile(Registry):
             for ov in overrides:
                 path = ov.get("path")
                 value = ov.get("value")
-                op = ov.get("op")
+                op = ov.get("op") or "set"
                 if not path:
                     continue
+                # Root-level handling for queries/context/compose
+                if path in ("queries", "context", "compose"):
+                    if op == "remove":
+                        merged.pop(path, None)
+                    elif op == "clear":
+                        merged[path] = {} if isinstance(merged.get(path), dict) else []
+                    elif op in ("set", "replace"):
+                        merged[path] = copy.deepcopy(value)
+                    elif op == "merge":
+                        base = merged.get(path, {} if isinstance(value, dict) else [])
+                        merged[path] = self._deep_merge_extends(base, value)
+                    else:
+                        raise ValueError(f"Unknown override op: {op}")
+                    continue
+
                 if op == "remove":
                     if path.startswith("queries."):
                         self._remove_path_override(qmap, path)
@@ -393,20 +479,44 @@ class RegistryFile(Registry):
                     else:
                         # Default to queries if no explicit prefix
                         self._remove_path_override(qmap, path)
-                    continue
-                if path.startswith("queries."):
-                    self._apply_path_override(qmap, path, value)
-                elif path.startswith("context."):
-                    self._apply_path_override_plain(
-                        cmap, path[len("context.") :], value
-                    )
-                elif path.startswith("compose."):
-                    self._apply_path_override_plain(
-                        compmap, path[len("compose.") :], value
-                    )
+                elif op in ("set", "replace"):
+                    if path.startswith("queries."):
+                        self._apply_path_override(qmap, path, value)
+                    elif path.startswith("context."):
+                        self._apply_path_override_plain(
+                            cmap, path[len("context.") :], value
+                        )
+                    elif path.startswith("compose."):
+                        self._apply_path_override_plain(
+                            compmap, path[len("compose.") :], value
+                        )
+                    else:
+                        # Default to queries if no explicit prefix
+                        self._apply_path_override(qmap, path, value)
+                elif op == "merge":
+                    if path.startswith("queries."):
+                        self._apply_path_merge(qmap, path, value)
+                    elif path.startswith("context."):
+                        self._apply_path_merge_plain(
+                            cmap, path[len("context.") :], value
+                        )
+                    elif path.startswith("compose."):
+                        self._apply_path_merge_plain(
+                            compmap, path[len("compose.") :], value
+                        )
+                    else:
+                        self._apply_path_merge(qmap, path, value)
+                elif op == "clear":
+                    if path.startswith("queries."):
+                        self._apply_path_clear(qmap, path)
+                    elif path.startswith("context."):
+                        self._apply_path_clear_plain(cmap, path[len("context.") :])
+                    elif path.startswith("compose."):
+                        self._apply_path_clear_plain(compmap, path[len("compose.") :])
+                    else:
+                        self._apply_path_clear(qmap, path)
                 else:
-                    # Default to queries if no explicit prefix
-                    self._apply_path_override(qmap, path, value)
+                    raise ValueError(f"Unknown override op: {op}")
 
         memo[cur_key] = merged
         return merged
@@ -585,12 +695,21 @@ class RegistryFile(Registry):
 
         out: dict = {}
 
-        # context overlay (maps deep-merge done later via plain overlay precedence)
+        # Read optional merge policy
+        merge_policy = preset.get("merge") or {}
+        mp_ctx = merge_policy.get("context", "deep") if isinstance(merge_policy, dict) else "deep"
+        mp_q = merge_policy.get("queries", "deep") if isinstance(merge_policy, dict) else "deep"
+        if mp_ctx not in ("deep", "replace"):
+            raise ValueError(f"Invalid preset merge value for 'context': {mp_ctx}")
+        if mp_q not in ("deep", "replace"):
+            raise ValueError(f"Invalid preset merge value for 'queries': {mp_q}")
+
+        # context overlay: no deep baseline here; 'replace' is effectively the same as default
         ctx = preset.get("context") or {}
         if ctx:
             out.update(self._resolve_context(ctx))
 
-        # queries overlay (evaluated and exposed into variables) with merge semantics
+        # queries overlay (evaluated and exposed into variables)
         # Base queries from defaults (AST), if provided
         defaults_raw = getattr(
             bit, "_defaults_raw", {}
@@ -604,10 +723,14 @@ class RegistryFile(Registry):
                 q_base = {}
 
         pqueries = preset.get("queries") or {}
-        # Merge base + preset (maps deep-merge, lists replace)
-        q_merged = self._deep_merge(q_base, pqueries) if (q_base or pqueries) else {}
+        # Merge base + preset depending on policy
+        if mp_q == "replace":
+            q_merged = copy.deepcopy(pqueries)
+        else:
+            # maps deep-merge, lists replace
+            q_merged = self._deep_merge(q_base, pqueries) if (q_base or pqueries) else {}
 
-        # Apply overrides (path,value) on merged queries before resolving
+        # Apply overrides (path,value,op) on merged queries before resolving
         overrides = preset.get("overrides") or []
         if overrides:
             if not q_merged:
@@ -617,13 +740,31 @@ class RegistryFile(Registry):
             for ov in overrides:
                 path = ov.get("path")
                 value = ov.get("value")
-                op = ov.get("op")
+                op = ov.get("op") or "set"
                 if not path:
+                    continue
+                if path == "queries":
+                    if op == "remove":
+                        q_merged = {}
+                    elif op == "clear":
+                        q_merged = {}
+                    elif op in ("set", "replace"):
+                        q_merged = copy.deepcopy(value) or {}
+                    elif op == "merge":
+                        q_merged = self._deep_merge_extends(q_merged, value or {})
+                    else:
+                        raise ValueError(f"Unknown override op: {op}")
                     continue
                 if op == "remove":
                     self._remove_path_override(q_merged, path)
-                else:
+                elif op in ("set", "replace"):
                     self._apply_path_override(q_merged, path, value)
+                elif op == "merge":
+                    self._apply_path_merge(q_merged, path, value)
+                elif op == "clear":
+                    self._apply_path_clear(q_merged, path)
+                else:
+                    raise ValueError(f"Unknown override op: {op}")
 
         if q_merged:
             out.update(self._resolve_inline_queries(q_merged))
@@ -666,6 +807,56 @@ class RegistryFile(Registry):
                     raise ValueError(f"Override list index out of range: {path}")
                 cur = cur[index]
 
+    def _apply_path_merge(self, root: dict, path: str, value):
+        """Deep-merge a value at a given path. If leafs are dicts/lists, merge using
+        _deep_merge_extends semantics; otherwise, replace.
+
+        Allows implicit 'queries.' stripping.
+        """
+        import re
+
+        if path.startswith("queries."):
+            path = path[len("queries.") :]
+
+        cur = root
+        tokens = path.split(".")
+        for i, tok in enumerate(tokens):
+            m = re.match(r"^([A-Za-z0-9_]+)(?:\[(\d+)\])?$", tok)
+            if not m:
+                raise ValueError(f"Invalid override path token: {tok}")
+            key = m.group(1)
+            idx = m.group(2)
+            if key not in cur:
+                raise ValueError(f"Override path not found: {path}")
+            if i == len(tokens) - 1:
+                target = cur[key]
+                if idx is not None:
+                    index = int(idx) - 1
+                    if not isinstance(target, list) or not (0 <= index < len(target)):
+                        raise ValueError(f"Override list index out of range: {path}")
+                    base_val = target[index]
+                    if isinstance(base_val, dict) and isinstance(value, dict):
+                        target[index] = self._deep_merge_extends(base_val, value)
+                    elif isinstance(base_val, list) and isinstance(value, list):
+                        target[index] = self._deep_merge_extends(base_val, value)
+                    else:
+                        target[index] = value
+                else:
+                    base_val = target
+                    if isinstance(base_val, dict) and isinstance(value, dict):
+                        cur[key] = self._deep_merge_extends(base_val, value)
+                    elif isinstance(base_val, list) and isinstance(value, list):
+                        cur[key] = self._deep_merge_extends(base_val, value)
+                    else:
+                        cur[key] = value
+                return
+            cur = cur[key]
+            if idx is not None:
+                index = int(idx) - 1
+                if not isinstance(cur, list) or not (0 <= index < len(cur)):
+                    raise ValueError(f"Override list index out of range: {path}")
+                cur = cur[index]
+
     def _apply_path_override_plain(self, root: dict, path: str, value):
         """Apply path override without implicit 'queries.' stripping.
 
@@ -693,6 +884,49 @@ class RegistryFile(Registry):
                     target[index] = value
                 else:
                     cur[key] = value
+                return
+            cur = cur[key]
+            if idx is not None:
+                index = int(idx) - 1
+                if not isinstance(cur, list) or not (0 <= index < len(cur)):
+                    raise ValueError(f"Override list index out of range: {path}")
+                cur = cur[index]
+
+    def _apply_path_merge_plain(self, root: dict, path: str, value):
+        """Deep-merge like _apply_path_merge but without implicit 'queries.' stripping."""
+        import re
+
+        cur = root
+        tokens = path.split(".")
+        for i, tok in enumerate(tokens):
+            m = re.match(r"^([A-Za-z0-9_]+)(?:\[(\d+)\])?$", tok)
+            if not m:
+                raise ValueError(f"Invalid override path token: {tok}")
+            key = m.group(1)
+            idx = m.group(2)
+            if key not in cur:
+                raise ValueError(f"Override path not found: {path}")
+            if i == len(tokens) - 1:
+                target = cur[key]
+                if idx is not None:
+                    index = int(idx) - 1
+                    if not isinstance(target, list) or not (0 <= index < len(target)):
+                        raise ValueError(f"Override list index out of range: {path}")
+                    base_val = target[index]
+                    if isinstance(base_val, dict) and isinstance(value, dict):
+                        target[index] = self._deep_merge_extends(base_val, value)
+                    elif isinstance(base_val, list) and isinstance(value, list):
+                        target[index] = self._deep_merge_extends(base_val, value)
+                    else:
+                        target[index] = value
+                else:
+                    base_val = target
+                    if isinstance(base_val, dict) and isinstance(value, dict):
+                        cur[key] = self._deep_merge_extends(base_val, value)
+                    elif isinstance(base_val, list) and isinstance(value, list):
+                        cur[key] = self._deep_merge_extends(base_val, value)
+                    else:
+                        cur[key] = value
                 return
             cur = cur[key]
             if idx is not None:
@@ -789,6 +1023,84 @@ class RegistryFile(Registry):
                     target_list.pop(index)
                 else:
                     cur.pop(key, None)
+                return
+            cur = cur[key]
+            if idx is not None:
+                index = int(idx) - 1
+                if not isinstance(cur, list) or not (0 <= index < len(cur)):
+                    raise ValueError(f"Override list index out of range: {path}")
+                cur = cur[index]
+
+    def _apply_path_clear(self, root: dict, path: str) -> None:
+        """Clear value at a given path to an empty of its type (dict->{}, list->[], scalar->None).
+
+        Allows implicit 'queries.' stripping.
+        """
+        import re
+
+        if path.startswith("queries."):
+            path = path[len("queries.") :]
+
+        cur = root
+        tokens = path.split(".")
+        for i, tok in enumerate(tokens):
+            m = re.match(r"^([A-Za-z0-9_]+)(?:\[(\d+)\])?$", tok)
+            if not m:
+                raise ValueError(f"Invalid override path token: {tok}")
+            key = m.group(1)
+            idx = m.group(2)
+            if key not in cur:
+                raise ValueError(f"Override path not found: {path}")
+            if i == len(tokens) - 1:
+                target = cur[key]
+                if idx is not None:
+                    index = int(idx) - 1
+                    if not isinstance(target, list) or not (0 <= index < len(target)):
+                        raise ValueError(f"Override list index out of range: {path}")
+                    target[index] = None
+                else:
+                    if isinstance(target, dict):
+                        cur[key] = {}
+                    elif isinstance(target, list):
+                        cur[key] = []
+                    else:
+                        cur[key] = None
+                return
+            cur = cur[key]
+            if idx is not None:
+                index = int(idx) - 1
+                if not isinstance(cur, list) or not (0 <= index < len(cur)):
+                    raise ValueError(f"Override list index out of range: {path}")
+                cur = cur[index]
+
+    def _apply_path_clear_plain(self, root: dict, path: str) -> None:
+        """Clear without implicit prefix stripping."""
+        import re
+
+        cur = root
+        tokens = path.split(".")
+        for i, tok in enumerate(tokens):
+            m = re.match(r"^([A-Za-z0-9_]+)(?:\[(\d+)\])?$", tok)
+            if not m:
+                raise ValueError(f"Invalid override path token: {tok}")
+            key = m.group(1)
+            idx = m.group(2)
+            if key not in cur:
+                raise ValueError(f"Override path not found: {path}")
+            if i == len(tokens) - 1:
+                target = cur[key]
+                if idx is not None:
+                    index = int(idx) - 1
+                    if not isinstance(target, list) or not (0 <= index < len(target)):
+                        raise ValueError(f"Override list index out of range: {path}")
+                    target[index] = None
+                else:
+                    if isinstance(target, dict):
+                        cur[key] = {}
+                    elif isinstance(target, list):
+                        cur[key] = []
+                    else:
+                        cur[key] = None
                 return
             cur = cur[key]
             if idx is not None:
