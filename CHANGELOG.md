@@ -1,3 +1,9 @@
+## v0.20.0 (2025-11-12)
+
+### Feat
+
+- Add multi-fragment support for Bit sources with rendering and validation enhancements
+
 ## v0.19.0 (2025-11-04)
 
 ### Feat
