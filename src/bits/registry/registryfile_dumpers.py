@@ -40,6 +40,11 @@ class RegistryFileMdDumper(RegistryFileDumper):
         header = yaml.dump(
             filtered_bit, default_flow_style=False, sort_keys=False
         ).strip()
+        # Markdown format supports only single-string src; multi-fragment is not representable
+        if isinstance(bit.src, dict):
+            raise ValueError(
+                "Cannot dump bit with multi-fragment src to Markdown format (.md)."
+            )
         content = bit.src.strip()
         return f"{header}\n```latex\n{content}\n```"
 

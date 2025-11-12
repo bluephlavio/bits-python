@@ -1,0 +1,27 @@
+\documentclass{article}
+\begin{document}
+\section*{Multi-Fragment Demo}
+
+% First row: plots
+\begin{enumerate}
+\BLOCK{ for block in groups[0] }
+  \item P: \VAR{ block.render('plot') }
+\BLOCK{ endfor }
+\end{enumerate}
+
+% Second row: equations
+\begin{enumerate}
+\BLOCK{ for block in groups[0] }
+  \item E: \VAR{ block.render('equation') }
+\BLOCK{ endfor }
+\end{enumerate}
+
+% Singles section
+\begin{enumerate}
+\BLOCK{ for block in groups[1] }
+  \item S: \VAR{ block.render() }
+\BLOCK{ endfor }
+\end{enumerate}
+
+\end{document}
+

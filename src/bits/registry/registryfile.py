@@ -75,7 +75,7 @@ class RegistryFile(Registry):
 
     def _load_bits(self, bit_models: List[BitModel], common_tags: List[str]):
         for bit_model in bit_models:
-            src: str = bit_model.src
+            src = bit_model.src
             meta: dict = bit_model.dict(exclude={"src"})
             bit: Bit = Bit(src, **meta)
             bit.tags.extend(common_tags)

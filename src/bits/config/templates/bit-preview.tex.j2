@@ -8,5 +8,12 @@
 \noindent\textbf{Name:} \VAR{ bit.bit.name or "(unnamed)" }\quad
 \textbf{Num:} \VAR{ bit.bit.num or "-" }\quad
 \textbf{Tags:} \VAR{ ', '.join(bit.bit.tags or []) }\\[4pt]
-\VAR{ bit.render() }
+\BLOCK{ if bit.bit.is_multi_fragment }
+  \BLOCK{ for name in bit.bit.fragment_names }
+    \textbf{\VAR{ name }}:\\[4pt]
+    \VAR{ bit.fragment(name).render() }\\[8pt]
+  \BLOCK{ endfor }
+\BLOCK{ else }
+  \VAR{ bit.render() }
+\BLOCK{ endif }
 \end{document}

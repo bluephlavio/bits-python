@@ -31,6 +31,37 @@ New in this repo:
 
 See `docs/preview-and-plugins.md` for details and examples.
 
+## Multi-fragment src
+
+- A Bit can define `src` as either a single string (legacy) or a mapping of
+  named template fragments. Each fragment renders independently through the
+  Jinja→LaTeX→PDF pipeline.
+- Backward compatible: existing `src: <string>` bits continue to work.
+- Authoring (YAML only):
+
+  ```yaml
+  bits:
+    - name: Line Match Atom
+      defaults: { a: 1, b: 2, c: 3 }
+      src:
+        equation: "$a + $b = $c"   # plain text or Jinja
+        plot: "Plot(\\VAR{ a },\\VAR{ b })"
+  ```
+
+- Rendering in target templates:
+  - Standard: `\\VAR{ block.render() }`
+  - Fragments: `\\VAR{ block.render('equation') }`,
+    `\\VAR{ block.render('plot') }`
+  - Preview shows all fragments for a bit.
+
+- Programmatic API additions:
+  - `Bit.is_multi_fragment`, `Bit.fragment_names`
+  - `Bit.render(part: str | None, **ctx)` (requires `part` for fragments)
+  - `Block.render(part: str | None)` and `Block.fragment(name).render()`
+
+- Note: Markdown registries (`.md`) only support single-string `src` and will
+  refuse to dump multi-fragment bits.
+
 ### 1. **Bits and Targets**
 - **Bits**: Individual problem templates written in a custom syntax inspired by Jinja2 and LaTeX. Each bit can generate multiple problems based on variable context.
 - **Targets**: Complete tests or assignments assembled from a list of selected bits. Targets also include metadata such as title, instructions, and additional constant data.
