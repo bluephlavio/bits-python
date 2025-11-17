@@ -1,3 +1,9 @@
+## v0.20.1 (2025-11-17)
+
+### Fix
+
+- removed element-wise merging in lists when using override with deep merge
+
 ## v0.20.0 (2025-11-12)
 
 ### Feat
