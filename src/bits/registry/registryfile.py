@@ -1111,13 +1111,10 @@ class RegistryFile(Registry):
 
     @staticmethod
     def _deep_merge_extends(base: dict, override: dict) -> dict:
-        """Deep merge for target extends semantics.
+        """Deep merge for target extends and overrides semantics.
 
         - Dicts: deep-merge recursively
-        - Lists: index-wise merge when both are lists
-            - If both items are dicts, merge dicts recursively
-            - Otherwise, override item replaces base at that index
-            - Extra items in override are appended; base extras are preserved
+        - Lists: replace entirely with the override list (no index-wise merge)
         - Scalars: override replaces base
         """
         import copy as _copy
@@ -1136,21 +1133,8 @@ class RegistryFile(Registry):
                     out[k] = _copy.deepcopy(v)
             return out
         if isinstance(base, list) and isinstance(override, list):
-            out_list = []
-            max_len = max(len(base), len(override))
-            for i in range(max_len):
-                if i < len(base) and i < len(override):
-                    b_i = base[i]
-                    o_i = override[i]
-                    if isinstance(b_i, dict) and isinstance(o_i, dict):
-                        out_list.append(RegistryFile._deep_merge_extends(b_i, o_i))
-                    else:
-                        out_list.append(_copy.deepcopy(o_i))
-                elif i < len(override):
-                    out_list.append(_copy.deepcopy(override[i]))
-                else:
-                    out_list.append(_copy.deepcopy(base[i]))
-            return out_list
+            # Replace list entirely to avoid index-wise merge semantics
+            return _copy.deepcopy(override)
         # Fallback: replace
         return _copy.deepcopy(override)
 
