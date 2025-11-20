@@ -126,7 +126,16 @@ class EnvironmentFactory:
                         continue
                     func = getattr(module, name)
                     if callable(func) and getattr(func, "__module__", None) == module.__name__:
-                        env.filters[name] = func
+                        # Heuristic: treat functions ending in "_filter" as
+                        # providing the implementation for a shorter filter
+                        # name without the suffix (e.g. "floor_filter" ->
+                        # "floor"), matching common patterns in existing
+                        # plugins.
+                        if name.endswith("_filter"):
+                            filter_name = name[: -len("_filter")]
+                        else:
+                            filter_name = name
+                        env.filters[filter_name] = func
             except Exception as err:  # pragma: no cover
                 warnings.warn(f"Failed to load filters from {path}: {err}")
 

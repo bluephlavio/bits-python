@@ -5,4 +5,5 @@
 - Queries DSL: queries.md
 - Compose: compose.md
 - Presets and Defaults: presets.md
+- Configuration and `.bitsrc`: config.md
 - Testing Guide: testing.md
