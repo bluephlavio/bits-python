@@ -13,9 +13,15 @@ Jinja Plugin Loader
       - env.filters["double"] = double
 - Configuration in `.bitsrc` (INI syntax):
   - [jinja]
-    plugins = ./filters/math_filters.py, ./filters/school_filters.py
+    plugins      = ./filters/math_filters.py, ./filters/school_filters.py
+    filter_files = ./filters/math_auto_filters.py
+    macro_files  = ${variables:templates}/macros/association.tex.j2
 - CLI option to disable plugins: `--no-plugins` (for both `build` and `preview`).
 - Load order: plugins are loaded in the order declared; later definitions override earlier ones.
+  - `filter_files` are loaded after `plugins`; all top‑level functions in each
+    file (except private names and `register`) become filters.
+  - `macro_files` are compiled as Jinja templates in the bits environment; all
+    exported macros are registered as globals (callable from any bit/template).
 
 Preview Builds
 - Command: `bits preview <spec> [--out DIR] [--pdf|--tex|--both] [--no-plugins]`.
