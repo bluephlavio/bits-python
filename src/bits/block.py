@@ -8,8 +8,9 @@ class _BlockFragment:
         self._name = name
         self._context = context
 
-    def render(self) -> str:
-        return self._bit.render(part=self._name, **self._context)
+    def render(self, **extra) -> str:
+        ctx = {**self._context, **extra}
+        return self._bit.render(part=self._name, **ctx)
 
 
 class Block:
@@ -23,8 +24,9 @@ class Block:
         self.context: dict = context or {}
         self.metadata: dict = metadata or {}
 
-    def render(self, part: str | None = None):
-        return self.bit.render(part=part, **self.context)
+    def render(self, part: str | None = None, **extra) -> str:
+        ctx = {**self.context, **extra}
+        return self.bit.render(part=part, **ctx)
 
     def fragment(self, name: str) -> _BlockFragment:
         return _BlockFragment(self.bit, name, self.context)

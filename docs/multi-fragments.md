@@ -49,8 +49,8 @@ API Additions
 - `Bit.fragment_names: list[str]`
 - `Bit.render(part: str | None, **ctx)` — when multi‑fragment, `part` is
   required to avoid ambiguity.
-- `Block.render(part: str | None)` — uses the block context.
-- `Block.fragment(name).render()` — convenience renderer bound to the block.
+- `Block.render(part: str | None, **ctx)` — uses the block context plus optional per‑call overrides.
+- `Block.fragment(name).render(**ctx)` — convenience renderer bound to the block, with per‑call overrides.
 
 Notes
 -----

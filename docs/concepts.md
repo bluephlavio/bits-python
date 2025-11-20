@@ -13,6 +13,8 @@ Core Abstractions
 - Block (`src/bits/block.py`)
   - Wraps a Bit with per-use `context` and `metadata`. Used inside targets
     to render selected bits.
+  - Renders via `block.render(part=None, **ctx)`, where `ctx` overlays the
+    block context for that call.
 
 - Target (`src/bits/target.py`)
   - A full document using a LaTeX Jinja template (`template`), a `context`
