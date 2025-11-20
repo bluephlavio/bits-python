@@ -1,3 +1,10 @@
+## v0.21.0 (2025-11-20)
+
+### Feat
+
+- add support for auto-registering Jinja filters and macros from config
+- add per-call context overrides for Block and BlockFragment rendering
+
 ## v0.20.1 (2025-11-17)
 
 ### Fix
