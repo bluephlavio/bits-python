@@ -30,6 +30,19 @@ def test_auto_filter_files_register_functions_as_filters():
     assert "helper" not in env.filters
 
 
+def test_auto_filter_files_trim_suffix_for_common_pattern():
+    path = Path("tests/resources/plugins/auto_filters_suffix.py").resolve()
+    _set_jinja_option("filter_files", str(path))
+    EnvironmentFactory.enable_plugins(True)
+
+    env = EnvironmentFactory.get()
+    # Functions named "<name>_filter" should be exposed as "<name>"
+    assert "floor" in env.filters
+    assert env.filters["floor"](3.7) == 3
+    assert "ceil" in env.filters
+    assert env.filters["ceil"](3.1) == 4
+
+
 def test_auto_macro_files_register_macros_as_globals():
     macro_path = Path("tests/resources/templates/macros_auto.tex.j2").resolve()
     _set_jinja_option("macro_files", str(macro_path))
