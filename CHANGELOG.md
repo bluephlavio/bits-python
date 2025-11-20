@@ -1,3 +1,10 @@
+## v0.21.1 (2025-11-20)
+
+### Fix
+
+- add double filter and macro for rendering with custom filters
+- add configuration documentation and auto-filter suffix handling
+
 ## v0.21.0 (2025-11-20)
 
 ### Feat
