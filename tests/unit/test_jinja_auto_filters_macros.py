@@ -53,3 +53,20 @@ def test_auto_macro_files_register_macros_as_globals():
     tpl = env.from_string(r"\VAR{ render_test(7) }")
     out = tpl.render()
     assert "Value: 7" in out
+
+
+def test_macros_can_use_custom_filters_from_filter_files():
+    filt_path = Path(
+        "tests/resources/plugins/auto_filters_for_macros.py"
+    ).resolve()
+    macro_path = Path(
+        "tests/resources/templates/macros_with_filter.tex.j2"
+    ).resolve()
+    _set_jinja_option("filter_files", str(filt_path))
+    _set_jinja_option("macro_files", str(macro_path))
+    EnvironmentFactory.enable_plugins(True)
+
+    env = EnvironmentFactory.get()
+    tpl = env.from_string(r"\VAR{ render_with_double(5) }")
+    out = tpl.render()
+    assert "Value: 10" in out
