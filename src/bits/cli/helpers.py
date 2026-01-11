@@ -365,7 +365,20 @@ def initialize_registry(
     return registry
 
 
-def watch_for_changes(registry: Registry, console: Console, output_tex: bool):
+def watch_for_changes(
+    registry: Registry,
+    console: Console,
+    output_tex: bool,
+    *,
+    pdf: bool | None = None,
+    tex: bool | None = None,
+    both: bool = False,
+    build_dir: Path | None = None,
+    intermediates_dir: Path | None = None,
+    keep_intermediates: str = "none",
+    unique_strategy: str | None = None,
+    loop: bool = True,
+):
     """
     Watch for file changes and trigger re-rendering when changes are detected.
 
@@ -376,6 +389,14 @@ def watch_for_changes(registry: Registry, console: Console, output_tex: bool):
         registry: The registry to watch and re-render
         console: Rich console instance for formatted output
         output_tex: Whether to output TeX files
+        pdf: Whether to output PDF
+        tex: Whether to output TeX
+        both: Whether to output both PDF and TeX
+        build_dir: Optional temp build dir for PDF rendering
+        intermediates_dir: Optional intermediates output dir
+        keep_intermediates: Which intermediates to keep
+        unique_strategy: Unique output naming strategy
+        loop: Whether to run the blocking watch loop
     """
     last_error = None  # Track the last error to avoid repeating the same error messages
 
@@ -441,6 +462,9 @@ def watch_for_changes(registry: Registry, console: Console, output_tex: bool):
         print_error(err, console)
         console.print("[bold red]Failed to set up file watching. Exiting.[/bold red]")
         raise typer.Exit(code=1)
+
+    if not loop:
+        return
 
     # Main watch loop that should never exit unless explicitly stopped
     while True:

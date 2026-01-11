@@ -184,7 +184,18 @@ def render(
 
     if watch:
         console.print("[bold yellow]Watching for file changes...[/bold yellow]")
-        watch_for_changes(registry, console, output_tex)
+        watch_for_changes(
+            registry,
+            console,
+            output_tex,
+            pdf=do_pdf,
+            tex=do_tex,
+            both=do_both,
+            build_dir=build_dir,
+            intermediates_dir=intermediates_dir,
+            keep_intermediates=keep_intermediates,
+            unique_strategy=unique,
+        )
 
 
 def _slugify(s: str) -> str:
