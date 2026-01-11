@@ -1,3 +1,9 @@
+## v0.21.2 (2026-01-11)
+
+### Fix
+
+- watcher fixed and tested
+
 ## v0.21.1 (2025-11-20)
 
 ### Fix
