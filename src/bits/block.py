@@ -28,6 +28,16 @@ class Block:
         ctx = {**self.context, **extra}
         return self.bit.render(part=part, **ctx)
 
+    def has_fragment(self, name: str) -> bool:
+        return self.bit.has_fragment(name)
+
+    def render_fragment(
+        self, name: str, *, missing: str | None = None, **extra
+    ) -> str | None:
+        if not self.has_fragment(name):
+            return missing
+        return self.render(name, **extra)
+
     def fragment(self, name: str) -> _BlockFragment:
         return _BlockFragment(self.bit, name, self.context)
 

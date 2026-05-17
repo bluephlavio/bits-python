@@ -25,9 +25,12 @@ bits:
 Rendering in Targets
 --------------------
 
-- Standard bits: `\\VAR{ block.render() }`.
-- Fragmented bits: `\\VAR{ block.render('equation') }`,
-  `\\VAR{ block.render('plot') }`.
+- Standard string-source bits: `\\VAR{ block.render() }`.
+- Fragmented bits with a `default` fragment: `\\VAR{ block.render() }`
+  renders `src.default`.
+- Fragmented bits without `default`: choose a fragment explicitly with
+  `\\VAR{ block.render('equation') }`, `\\VAR{ block.render('plot') }`, and so
+  on. The core never selects the first mapping entry automatically.
 - A layout that uses all fragments of selected bits might look like:
 
 ```latex
@@ -48,9 +51,31 @@ API Additions
 - `Bit.is_multi_fragment: bool`
 - `Bit.fragment_names: list[str]`
 - `Bit.render(part: str | None, **ctx)` — when multi‑fragment, `part` is
-  required to avoid ambiguity.
-- `Block.render(part: str | None, **ctx)` — uses the block context plus optional per‑call overrides.
-- `Block.fragment(name).render(**ctx)` — convenience renderer bound to the block, with per‑call overrides.
+  required unless the bit defines a `default` fragment.
+- `Block.render(part: str | None, **ctx)` — uses the block context plus
+  optional per-call overrides.
+- `Block.has_fragment(name)` — checks for a named fragment without reaching
+  into `Bit` internals.
+- `Block.render_fragment(name, missing=None, **ctx)` — renders a named
+  fragment and returns `missing` when it is absent.
+- `Block.fragment(name).render(**ctx)` — convenience renderer bound to the
+  block, with per-call overrides.
+
+Default Fragment
+----------------
+
+`default` is a technical core convention for the fragment used by
+`render()` with no argument. It does not mean "student text" or any other
+domain-specific role; callers can define fragments such as `solution`, `plot`,
+`left`, or `right` according to their own templates.
+
+```yaml
+src:
+  default: |
+    Testo ordinario del bit.
+  solution: |
+    Soluzione o svolgimento.
+```
 
 Notes
 -----
