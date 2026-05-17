@@ -1,0 +1,17 @@
+targets:
+  - name: default-fragment
+    template: ./templates/minimal.tex.j2
+    dest: ${artifacts}
+    context:
+      title: Default Fragment
+    queries:
+      blocks:
+        - where: { name: With Default Fragment }
+    compose:
+      blocks: { flatten: true, merge: concat, as: blocks }
+
+bits:
+  - name: With Default Fragment
+    src:
+      default: "Student text"
+      solution: "Teacher solution"

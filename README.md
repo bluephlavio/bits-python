@@ -49,15 +49,34 @@ See `docs/preview-and-plugins.md` for details and examples.
   ```
 
 - Rendering in target templates:
-  - Standard: `\\VAR{ block.render() }`
-  - Fragments: `\\VAR{ block.render('equation') }`,
+  - String `src`: `\\VAR{ block.render() }`
+  - Mapping `src` with `default`: `\\VAR{ block.render() }` renders the
+    `default` fragment.
+  - Mapping `src` without `default`: call a fragment explicitly, for example
+    `\\VAR{ block.render('equation') }`,
     `\\VAR{ block.render('plot') }`
+  - The core never chooses the first mapping entry automatically.
   - Preview shows all fragments for a bit.
 
 - Programmatic API additions:
   - `Bit.is_multi_fragment`, `Bit.fragment_names`
-  - `Bit.render(part: str | None, **ctx)` (requires `part` for fragments)
-  - `Block.render(part: str | None)` and `Block.fragment(name).render()`
+  - `Bit.render(part: str | None, **ctx)` (`part` is optional only when a
+    fragmented bit defines `default`)
+  - `Block.render(part: str | None)`, `Block.has_fragment(name)`,
+    `Block.render_fragment(name, missing=None)`, and
+    `Block.fragment(name).render()`
+
+- `default` is a technical convention for no-argument rendering. It does not
+  imply a domain role: workspaces can also define fragments such as `solution`,
+  `plot`, `left`, or `right`.
+
+  ```yaml
+  src:
+    default: |
+      Testo ordinario del bit.
+    solution: |
+      Soluzione o svolgimento.
+  ```
 
 - Note: Markdown registries (`.md`) only support single-string `src` and will
   refuse to dump multi-fragment bits.

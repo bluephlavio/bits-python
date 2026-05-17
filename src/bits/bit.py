@@ -44,9 +44,7 @@ class Bit(Element):
                     for key, val in self.src.items()
                 }
         except Exception as err:
-            raise TemplateLoadError(
-                f"Unable to load bit source: \n\n{self}\n"
-            ) from err
+            raise TemplateLoadError(f"Unable to load bit source: \n\n{self}\n") from err
 
     def __repr__(self) -> str:
         return f"Bit(src={self.src})"
@@ -76,18 +74,24 @@ class Bit(Element):
             return list(self.src.keys())
         return []
 
+    def has_fragment(self, name: str) -> bool:
+        return name in self._templates
+
     def render(self, part: str | None = None, **kwargs) -> str:
         context: dict = {**self.defaults}
         context.update(**kwargs)
         try:
             if isinstance(self.src, str):
                 return self._template.render(context)
-            # Multi-fragment: require explicit part
+
             if not part:
-                raise TemplateRenderError(
-                    "Bit has multiple fragments; specify 'part' to render one. "
-                    f"Available: {', '.join(self.fragment_names)}"
-                )
+                if self.has_fragment("default"):
+                    part = "default"
+                else:
+                    raise TemplateRenderError(
+                        "Bit has multiple fragments; specify 'part' to render one. "
+                        f"Available: {', '.join(self.fragment_names)}"
+                    )
             if part not in self._templates:
                 raise TemplateRenderError(
                     f"Unknown fragment '{part}'. Available: {', '.join(self.fragment_names)}"
