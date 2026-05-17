@@ -1,3 +1,9 @@
+## v0.23.0 (2026-05-17)
+
+### Feat
+
+- render default bit fragment
+
 ## v0.22.0 (2026-05-17)
 
 ### Feat
