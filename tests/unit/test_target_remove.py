@@ -33,4 +33,3 @@ def test_remove_out_of_range_is_noop():
     assert tex.find("Q2") != -1
     assert tex.find("Q3") != -1
     assert tex.find("Q1") < tex.find("Q2") < tex.find("Q3")
-

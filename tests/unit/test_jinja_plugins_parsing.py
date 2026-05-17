@@ -60,4 +60,3 @@ def test_plugins_parsing_list_literal():
         Path(p1).expanduser().as_posix(),
         Path(p2).expanduser().as_posix(),
     ]
-

@@ -44,9 +44,7 @@ class Bit(Element):
                     for key, val in self.src.items()
                 }
         except Exception as err:
-            raise TemplateLoadError(
-                f"Unable to load bit source: \n\n{self}\n"
-            ) from err
+            raise TemplateLoadError(f"Unable to load bit source: \n\n{self}\n") from err
 
     def __repr__(self) -> str:
         return f"Bit(src={self.src})"

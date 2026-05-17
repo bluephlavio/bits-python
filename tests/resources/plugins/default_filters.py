@@ -55,4 +55,3 @@ def register(env):
     env.filters["render"] = render_filter
     env.filters["enumerate"] = enumerate_filter
     env.filters["show"] = show_filter
-

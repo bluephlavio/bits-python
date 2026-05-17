@@ -65,7 +65,7 @@ def test_preview_single_bit_colon_syntax(resources):
     runner = CliRunner()
     bitsfile = resources / "bits-presets.yaml"
     outdir = Path(config.get("preview", "out_dir", fallback="tests/artifacts/preview"))
-    spec = f"{bitsfile}:\"Mass of the Sun\":default"
+    spec = f'{bitsfile}:"Mass of the Sun":default'
     res = runner.invoke(app, ["preview", spec, "--tex"], prog_name="bits")
     assert res.exit_code == 0
     expected_name = f"{bitsfile.stem}__mass-of-the-sun__p-default.tex"
