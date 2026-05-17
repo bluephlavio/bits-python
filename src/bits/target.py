@@ -73,11 +73,13 @@ class Target(Element):
                 return o
         return None
 
+    def _get_default_outputs(self) -> list[dict]:
+        defaults = [o for o in self._outputs if o["default"]]
+        return defaults if defaults else list(self._outputs)
+
     def _get_default_output(self) -> dict | None:
-        for o in self._outputs:
-            if o["default"]:
-                return o
-        return self._outputs[0] if self._outputs else None
+        defaults = self._get_default_outputs()
+        return defaults[0] if defaults else None
 
     def _compute_output_dest(self, output: dict) -> Path:
         if output["dest"] is not None:
@@ -156,26 +158,19 @@ class Target(Element):
 
         if self._outputs:
             if all_outputs:
-                for out in self._outputs:
-                    self._render_one(
-                        out["template"],
-                        out["context"],
-                        self._compute_output_dest(out),
-                        do_tex,
-                        do_pdf,
-                        **render_kwargs,
+                to_render = self._outputs
+            elif output_name is not None:
+                out = self.get_output(output_name)
+                if out is None:
+                    available = [o["name"] for o in self._outputs]
+                    raise ValueError(
+                        f"Output '{output_name}' not found in target"
+                        f" '{self.name}'. Available: {available}"
                     )
+                to_render = [out]
             else:
-                if output_name is not None:
-                    out = self.get_output(output_name)
-                    if out is None:
-                        available = [o["name"] for o in self._outputs]
-                        raise ValueError(
-                            f"Output '{output_name}' not found in target"
-                            f" '{self.name}'. Available: {available}"
-                        )
-                else:
-                    out = self._get_default_output()
+                to_render = self._get_default_outputs()
+            for out in to_render:
                 self._render_one(
                     out["template"],
                     out["context"],

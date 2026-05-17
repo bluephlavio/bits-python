@@ -37,7 +37,7 @@ def test_legacy_target_renders_normally():
 
 
 # ---------------------------------------------------------------------------
-# 2. Target with outputs — implicit default (first output)
+# 2. Target with outputs — implicit default (all outputs when none marked)
 # ---------------------------------------------------------------------------
 
 
@@ -48,11 +48,12 @@ def test_multi_output_has_two_outputs():
     assert tgt._outputs[1]["name"] == "key"
 
 
-def test_multi_output_default_is_first():
+def test_multi_output_default_outputs_is_all():
     tgt = _get_target("multi-output")
-    default = tgt._get_default_output()
-    assert default is not None
-    assert default["name"] == "student"
+    defaults = tgt._get_default_outputs()
+    assert len(defaults) == 2
+    assert defaults[0]["name"] == "student"
+    assert defaults[1]["name"] == "key"
 
 
 def test_multi_output_render_tex_code_uses_base():
@@ -152,19 +153,19 @@ def test_output_context_deep_merge():
 
 
 # ---------------------------------------------------------------------------
-# 9. Validation: multiple defaults raise ValueError
+# 9. Multiple defaults are allowed (all marked ones are built by default)
 # ---------------------------------------------------------------------------
 
 
-def test_multiple_defaults_raises():
-    with pytest.raises(ValueError, match="multiple outputs have default=True"):
-        TargetModel(
-            name="bad",
-            outputs=[
-                TargetOutputModel(name="a", default=True),
-                TargetOutputModel(name="b", default=True),
-            ],
-        )
+def test_multiple_defaults_allowed():
+    model = TargetModel(
+        name="ok",
+        outputs=[
+            TargetOutputModel(name="a", default=True),
+            TargetOutputModel(name="b", default=True),
+        ],
+    )
+    assert len([o for o in model.outputs if o.default]) == 2
 
 
 # ---------------------------------------------------------------------------
@@ -222,11 +223,25 @@ def test_render_specific_output_tex(tmp_path):
     assert "Answer Key" in key_tex.read_text()
 
 
-def test_render_default_output_tex(tmp_path):
+def test_render_default_output_tex_builds_all_when_no_explicit_default(tmp_path):
+    # multi-output has no explicit default=True, so plain render builds ALL outputs
     tgt = _get_target("multi-output")
     tgt.render(tex=True)
     student_tex = tgt.dest.with_suffix(".tex")
+    key_dest = tgt._compute_output_dest(tgt.get_output("key"))
+    key_tex = key_dest.with_suffix(".tex")
     assert student_tex.exists()
-    content = student_tex.read_text()
-    # student template shows "student" mode, no "Answer Key"
-    assert "Answer Key" not in content
+    assert key_tex.exists()
+    assert "Answer Key" not in student_tex.read_text()
+    assert "Answer Key" in key_tex.read_text()
+
+
+def test_render_default_output_tex_respects_explicit_default(tmp_path):
+    # default-explicit has key marked default=True; plain render builds only key
+    tgt = _get_target("default-explicit")
+    tgt.render(tex=True)
+    key_dest = tgt._compute_output_dest(tgt.get_output("key"))
+    key_tex = key_dest.with_suffix(".tex")
+    student_tex = tgt.dest.with_suffix(".tex")
+    assert key_tex.exists()
+    assert not student_tex.exists()

@@ -36,11 +36,4 @@ class TargetModel(BaseModel):  # pylint: disable=too-few-public-methods
     @validator("outputs", always=True)
     @classmethod
     def _validate_outputs(cls, outputs, values):  # pylint: disable=no-self-argument
-        defaults = [o for o in outputs if o.default]
-        if len(defaults) > 1:
-            name = values.get("name")
-            raise ValueError(
-                f"Target '{name}': multiple outputs have default=True;"
-                " at most one is allowed"
-            )
         return outputs
