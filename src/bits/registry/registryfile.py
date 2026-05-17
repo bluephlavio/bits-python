@@ -116,7 +116,11 @@ class RegistryFile(Registry):
             try:
                 presets = getattr(bit, "presets", []) or []
                 # Drop any user-defined preset named 'default' (case-sensitive)
-                filtered = [p for p in presets if p.get("name") != "default" and p.get("id") != "default"]
+                filtered = [
+                    p
+                    for p in presets
+                    if p.get("name") != "default" and p.get("id") != "default"
+                ]
                 if len(filtered) != len(presets):
                     warnings.warn(
                         "User-defined preset named 'default' is ignored; the tool creates it automatically.",
@@ -162,6 +166,7 @@ class RegistryFile(Registry):
                 context=merged_spec.get("context") or {},
                 queries=merged_spec.get("queries") or {},
                 compose=merged_spec.get("compose") or {},
+                outputs=target_model.outputs,
             )
             target: Target = self._resolve_target(final_tm)
             target.tags.extend(common_tags)
@@ -329,7 +334,9 @@ class RegistryFile(Registry):
                                 base_merged.pop(path, None)
                             elif op == "clear":
                                 base_merged[path] = (
-                                    {} if isinstance(base_merged.get(path), dict) else []
+                                    {}
+                                    if isinstance(base_merged.get(path), dict)
+                                    else []
                                 )
                             elif op in ("set", "replace"):
                                 base_merged[path] = copy.deepcopy(value)
@@ -337,7 +344,9 @@ class RegistryFile(Registry):
                                 base = base_merged.get(
                                     path, {} if isinstance(value, dict) else []
                                 )
-                                base_merged[path] = self._deep_merge_extends(base, value)
+                                base_merged[path] = self._deep_merge_extends(
+                                    base, value
+                                )
                             else:
                                 raise ValueError(f"Unknown override op: {op}")
                             continue
@@ -385,7 +394,9 @@ class RegistryFile(Registry):
                             if path.startswith("queries."):
                                 self._apply_path_clear(qmap, path)
                             elif path.startswith("context."):
-                                self._apply_path_clear_plain(cmap, path[len("context.") :])
+                                self._apply_path_clear_plain(
+                                    cmap, path[len("context.") :]
+                                )
                             elif path.startswith("compose."):
                                 self._apply_path_clear_plain(
                                     compmap, path[len("compose.") :]
@@ -469,9 +480,7 @@ class RegistryFile(Registry):
                     if path.startswith("queries."):
                         self._remove_path_override(qmap, path)
                     elif path.startswith("context."):
-                        self._remove_path_override_plain(
-                            cmap, path[len("context.") :]
-                        )
+                        self._remove_path_override_plain(cmap, path[len("context.") :])
                     elif path.startswith("compose."):
                         self._remove_path_override_plain(
                             compmap, path[len("compose.") :]
@@ -697,8 +706,16 @@ class RegistryFile(Registry):
 
         # Read optional merge policy
         merge_policy = preset.get("merge") or {}
-        mp_ctx = merge_policy.get("context", "deep") if isinstance(merge_policy, dict) else "deep"
-        mp_q = merge_policy.get("queries", "deep") if isinstance(merge_policy, dict) else "deep"
+        mp_ctx = (
+            merge_policy.get("context", "deep")
+            if isinstance(merge_policy, dict)
+            else "deep"
+        )
+        mp_q = (
+            merge_policy.get("queries", "deep")
+            if isinstance(merge_policy, dict)
+            else "deep"
+        )
         if mp_ctx not in ("deep", "replace"):
             raise ValueError(f"Invalid preset merge value for 'context': {mp_ctx}")
         if mp_q not in ("deep", "replace"):
@@ -728,7 +745,9 @@ class RegistryFile(Registry):
             q_merged = copy.deepcopy(pqueries)
         else:
             # maps deep-merge, lists replace
-            q_merged = self._deep_merge(q_base, pqueries) if (q_base or pqueries) else {}
+            q_merged = (
+                self._deep_merge(q_base, pqueries) if (q_base or pqueries) else {}
+            )
 
         # Apply overrides (path,value,op) on merged queries before resolving
         overrides = preset.get("overrides") or []
@@ -971,7 +990,9 @@ class RegistryFile(Registry):
                 if idx is not None:
                     target_list = cur[key]
                     index = int(idx) - 1
-                    if not isinstance(target_list, list) or not (0 <= index < len(target_list)):
+                    if not isinstance(target_list, list) or not (
+                        0 <= index < len(target_list)
+                    ):
                         warnings.warn(
                             f"Remove override list index out of range (no-op): {path}"
                         )
@@ -1015,7 +1036,9 @@ class RegistryFile(Registry):
                 if idx is not None:
                     target_list = cur[key]
                     index = int(idx) - 1
-                    if not isinstance(target_list, list) or not (0 <= index < len(target_list)):
+                    if not isinstance(target_list, list) or not (
+                        0 <= index < len(target_list)
+                    ):
                         warnings.warn(
                             f"Remove override list index out of range (no-op): {path}"
                         )
@@ -1285,6 +1308,27 @@ class RegistryFile(Registry):
         # This preserves stable, readable naming and aligns with tests.
 
         target: Target = Target(template, context, dest, name=name, tags=tags)
+
+        # Resolve and attach output specs (each shares the already-resolved context)
+        resolved_outputs = []
+        for out_model in data.outputs:
+            out_tpl = self._resolve_template(
+                out_model.template or data.template or config.get("DEFAULT", "template")
+            )
+            out_dest = self._resolve_path(out_model.dest) if out_model.dest else None
+            out_context = self._deep_merge(context, out_model.context)
+            resolved_outputs.append(
+                {
+                    "name": out_model.name,
+                    "template": out_tpl,
+                    "dest": out_dest,
+                    "suffix": out_model.suffix,
+                    "context": out_context,
+                    "default": out_model.default,
+                }
+            )
+        target._outputs = resolved_outputs  # pylint: disable=protected-access
+
         return target
 
     def _resolve_and_compose_queries(self, queries: dict, compose_cfg: dict) -> dict:

@@ -80,6 +80,7 @@ def common(
     # Ensure env-var provided config is merged even if the module was imported
     # before the environment variable was set (e.g., in tests).
     import os
+
     try:
         cfg = os.environ.get("BITS_CONFIG")
         if cfg:
@@ -113,6 +114,16 @@ def render(
         False,
         "--no-plugins",
         help="Disable loading Jinja plugins declared in .bitsrc",
+    ),
+    output: Optional[str] = typer.Option(
+        None,
+        "--output",
+        help="Build a specific output variant by name (requires --target)",
+    ),
+    all_outputs: bool = typer.Option(
+        False,
+        "--all-outputs",
+        help="Build all output variants defined on the target(s)",
     ),
 ):
     console.print("[bold green]Starting build process...[/bold green]")
@@ -149,21 +160,22 @@ def render(
                 break
         if tgt is None:
             raise typer.BadParameter(f"Target not found: {sel}")
-        console.rule("[bold]Build Started (single target)")
-        tex_code = tgt.render_tex_code()
-        if do_tex or do_both:
-            from ..helpers import write as _write
-
-            _write(tex_code, tgt.dest.with_suffix(".tex"))
-        if do_pdf or do_both:
-            Renderer.render(
-                tex_code,
-                tgt.dest,
-                output_tex=False,
-                build_dir=build_dir,
-                intermediates_dir=intermediates_dir,
-                keep_intermediates=keep_intermediates,
+        if output and not tgt._outputs:  # pylint: disable=protected-access
+            raise typer.BadParameter(
+                f"Target '{sel}' has no outputs defined;"
+                " --output requires outputs to be configured"
             )
+        console.rule("[bold]Build Started (single target)")
+        tgt.render(
+            pdf=do_pdf,
+            tex=do_tex,
+            both=do_both,
+            build_dir=build_dir,
+            intermediates_dir=intermediates_dir,
+            keep_intermediates=keep_intermediates,
+            output_name=output,
+            all_outputs=all_outputs,
+        )
         console.rule("[bold]Build Completed")
         return
 
@@ -180,6 +192,8 @@ def render(
         intermediates_dir=intermediates_dir,
         keep_intermediates=keep_intermediates,
         unique_strategy=unique,
+        output_name=output,
+        all_outputs=all_outputs,
     )
 
     if watch:
@@ -195,6 +209,8 @@ def render(
             intermediates_dir=intermediates_dir,
             keep_intermediates=keep_intermediates,
             unique_strategy=unique,
+            output_name=output,
+            all_outputs=all_outputs,
         )
 
 

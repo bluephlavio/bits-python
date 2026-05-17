@@ -63,6 +63,8 @@ class Registry(ABC):
         intermediates_dir=None,
         keep_intermediates: str = "none",
         unique_strategy: str | None = None,
+        output_name: str | None = None,
+        all_outputs: bool = False,
     ) -> None:
         with self._load_lock:
             for target in self._targets:
@@ -75,6 +77,8 @@ class Registry(ABC):
                     intermediates_dir=intermediates_dir,
                     keep_intermediates=keep_intermediates,
                     unique_strategy=unique_strategy,
+                    output_name=output_name,
+                    all_outputs=all_outputs,
                 )
 
     def add_dep(self, registry: Registry) -> None:

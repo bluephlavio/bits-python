@@ -4,7 +4,7 @@ from .blocks_model import BlocksModel
 from .constant_model import ConstantModel
 from .constants_model import ConstantsModel
 from .registry_model import RegistryDataModel
-from .target_model import TargetModel
+from .target_model import TargetModel, TargetOutputModel
 from .constants_query_model import WhereConstantsModel
 
 __all__ = [
@@ -14,6 +14,7 @@ __all__ = [
     "SelectModel",
     "BlocksModel",
     "TargetModel",
+    "TargetOutputModel",
     "ConstantModel",
     "ConstantsModel",
     "BitModel",
