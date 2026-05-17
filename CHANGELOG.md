@@ -1,3 +1,11 @@
+## v0.24.0 (2026-05-17)
+
+### Feat
+
+- support multiple outputs per target (closes #64)
+- support multiple outputs per target (closes #64)
+- build all default outputs (or all) on plain bits build
+
 ## v0.23.0 (2026-05-17)
 
 ### Feat
