@@ -1,3 +1,11 @@
+## v0.22.0 (2026-05-17)
+
+### Feat
+
+- introduce targets.outputs for multi-variant rendering
+- introduce targets.outputs for multi-variant rendering
+- introduce targets.outputs for multi-variant rendering
+
 ## v0.21.2 (2026-01-11)
 
 ### Fix
