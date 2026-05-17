@@ -1,16 +1,21 @@
 name: Post-Merge Bump and Sync
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
     branches:
       - main
-    paths-ignore:
-      - 'pyproject.toml'
-      - 'CHANGELOG.md'
 
 jobs:
   bump_version:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push'
     runs-on: ubuntu-latest
+    outputs:
+      bumped: ${{ steps.bump.outputs.bumped }}
     steps:
     - name: Check out main branch
       uses: actions/checkout@v3
@@ -25,15 +30,24 @@ jobs:
         pip install commitizen
 
     - name: Bump version
+      id: bump
       run: |
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@github.com"
-        cz bump --yes
-        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-        git push origin HEAD:main --tags
+        if cz bump --yes; then
+          echo "bumped=true" >> $GITHUB_OUTPUT
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git push origin HEAD:main --tags
+        else
+          echo "bumped=false" >> $GITHUB_OUTPUT
+          echo "No version bump needed"
+        fi
 
   sync_dev:
     needs: bump_version
+    if: >-
+      needs.bump_version.result == 'success' &&
+      needs.bump_version.outputs.bumped == 'true'
     runs-on: ubuntu-latest
     steps:
     - name: Check out dev branch
