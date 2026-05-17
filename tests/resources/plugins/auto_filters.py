@@ -7,4 +7,3 @@ def add(a, b):
 
 
 helper = "not a filter"
-

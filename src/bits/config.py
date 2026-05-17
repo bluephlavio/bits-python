@@ -33,6 +33,7 @@ except Exception:  # pragma: no cover - environment dependent
 
 config = configparser.ConfigParser(interpolation=ExtendedInterpolation())
 
+
 def _to_string(val: Any) -> str:
     if isinstance(val, bool):
         return "true" if val else "false"
@@ -149,7 +150,9 @@ def _minimal_toml_parse(text: str) -> Dict[str, Any]:  # pragma: no cover
             return items
         if v.lower() in ("true", "false"):
             return v.lower() == "true"
-        if (v.startswith('"') and v.endswith('"')) or (v.startswith("'") and v.endswith("'")):
+        if (v.startswith('"') and v.endswith('"')) or (
+            v.startswith("'") and v.endswith("'")
+        ):
             return v[1:-1]
         # number fallback or bare string
         try:

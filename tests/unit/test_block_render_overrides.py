@@ -23,4 +23,3 @@ def test_block_fragment_render_allows_per_call_overrides():
 
     # Per-call kwargs override fragment context
     assert frag.render(label="Z") == "Z"
-

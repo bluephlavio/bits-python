@@ -53,4 +53,3 @@ def test_preset_merge_queries_replace():
     # Should reference the G constant (not c), i.e., symbol $G$
     assert "$G$" in tex
     assert "$c$" not in tex
-

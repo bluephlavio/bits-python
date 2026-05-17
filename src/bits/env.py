@@ -125,7 +125,10 @@ class EnvironmentFactory:
                     if name.startswith("_") or name == "register":
                         continue
                     func = getattr(module, name)
-                    if callable(func) and getattr(func, "__module__", None) == module.__name__:
+                    if (
+                        callable(func)
+                        and getattr(func, "__module__", None) == module.__name__
+                    ):
                         # Heuristic: treat functions ending in "_filter" as
                         # providing the implementation for a shorter filter
                         # name without the suffix (e.g. "floor_filter" ->
@@ -193,7 +196,9 @@ class EnvironmentFactory:
                 else []
             )
             plugin_key = f"plugins:{int(cls._plugins_enabled)}|{','.join(plugin_list)}"
-            extras_key = f"filters:{','.join(filter_list)}|macros:{','.join(macro_list)}"
+            extras_key = (
+                f"filters:{','.join(filter_list)}|macros:{','.join(macro_list)}"
+            )
         except Exception:
             plugin_key = f"plugins:{int(cls._plugins_enabled)}"
             extras_key = ""

@@ -1,0 +1,60 @@
+targets:
+  - name: multi-output
+    template: ${templates}/outputs-student.tex.j2
+    dest: ${artifacts}
+    context:
+      title: Output Test
+    outputs:
+      - name: student
+      - name: key
+        suffix: key
+        template: ${templates}/outputs-key.tex.j2
+        context:
+          render_mode: key
+
+  - name: default-explicit
+    template: ${templates}/outputs-student.tex.j2
+    dest: ${artifacts}
+    context:
+      title: Default Explicit Test
+    outputs:
+      - name: student
+      - name: key
+        suffix: key
+        default: true
+        template: ${templates}/outputs-key.tex.j2
+        context:
+          render_mode: key
+
+  - name: no-outputs
+    template: ${templates}/minimal.tex.j2
+    dest: ${artifacts}
+    context:
+      title: No Outputs Legacy
+    queries:
+      blocks:
+        - where: { tags: [output-test] }
+    compose:
+      blocks: { flatten: true, as: blocks }
+
+  - name: deep-merge-output
+    template: ${templates}/outputs-student.tex.j2
+    dest: ${artifacts}
+    context:
+      title: Deep Merge Test
+      nested:
+        base_key: base_value
+        shared_key: from_base
+    outputs:
+      - name: variant
+        suffix: variant
+        context:
+          nested:
+            shared_key: from_output
+            output_key: output_value
+
+bits:
+  - name: OutputBit
+    tags: [output-test]
+    src: |
+      Output test content.

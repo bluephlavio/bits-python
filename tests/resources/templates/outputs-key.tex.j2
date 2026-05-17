@@ -1,0 +1,10 @@
+\documentclass{article}
+\begin{document}
+\section*{Answer Key}
+mode: \VAR{ render_mode or "student" }
+\begin{enumerate}
+\BLOCK{ for block in (blocks or []) }
+  \item \VAR{ block.render() }
+\BLOCK{ endfor }
+\end{enumerate}
+\end{document}

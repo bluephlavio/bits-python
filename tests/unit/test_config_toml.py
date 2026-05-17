@@ -7,7 +7,7 @@ from bits.config import config, load_config_file
 
 def test_load_toml_plugins_and_booleans(tmp_path):
     plugin = (Path("tests/resources/plugins/math_filters.py").resolve()).as_posix()
-    toml = f'''
+    toml = f"""
 [variables]
 templates = "tests/resources/templates"
 artifacts = "tests/artifacts"
@@ -18,7 +18,7 @@ plugins = ["{plugin}"]
 [output]
 pdf = true
 tex = false
-'''
+"""
     cfg = tmp_path / ".bits.toml"
     cfg.write_text(toml)
 
@@ -37,4 +37,3 @@ tex = false
     # Booleans should be available via getboolean
     assert config.getboolean("output", "pdf") is True
     assert config.getboolean("output", "tex") is False
-

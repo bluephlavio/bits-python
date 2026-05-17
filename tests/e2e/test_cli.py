@@ -169,3 +169,81 @@ def test_cli_build_pdf_presets(resources):
             assert expected_pdf.exists()
         else:
             pytest.skip("PDF not generated in local env")
+
+
+# ---------------------------------------------------------------------------
+# Target outputs CLI tests
+# ---------------------------------------------------------------------------
+
+
+def test_cli_build_output_specific(resources):
+    """--output NAME builds only the named output variant."""
+    runner = CliRunner()
+    path = resources / "targets-outputs.yaml"
+    result = runner.invoke(
+        app,
+        ["build", str(path), "--target", "multi-output", "--output", "key", "--tex"],
+        prog_name="bits",
+    )
+    if result.exit_code != 0:
+        print("CLI output:\n", result.output)
+    assert result.exit_code == 0
+
+    artifacts_dir = Path(config.get("variables", "artifacts"))
+    key_tex = artifacts_dir / "multi-output-key.tex"
+    assert key_tex.exists(), f"Expected {key_tex} to exist"
+    assert "Answer Key" in key_tex.read_text()
+
+
+def test_cli_build_all_outputs(resources):
+    """--all-outputs builds every output variant for the target."""
+    runner = CliRunner()
+    path = resources / "targets-outputs.yaml"
+    result = runner.invoke(
+        app,
+        ["build", str(path), "--target", "multi-output", "--all-outputs", "--tex"],
+        prog_name="bits",
+    )
+    if result.exit_code != 0:
+        print("CLI output:\n", result.output)
+    assert result.exit_code == 0
+
+    artifacts_dir = Path(config.get("variables", "artifacts"))
+    student_tex = artifacts_dir / "multi-output.tex"
+    key_tex = artifacts_dir / "multi-output-key.tex"
+    assert student_tex.exists(), f"Expected {student_tex}"
+    assert key_tex.exists(), f"Expected {key_tex}"
+
+
+def test_cli_build_output_on_no_outputs_target(resources):
+    """--output on a target with no outputs must exit with an error."""
+    runner = CliRunner()
+    path = resources / "targets-outputs.yaml"
+    result = runner.invoke(
+        app,
+        [
+            "build",
+            str(path),
+            "--target",
+            "no-outputs",
+            "--output",
+            "student",
+            "--tex",
+        ],
+        prog_name="bits",
+    )
+    assert result.exit_code != 0
+
+
+def test_cli_build_legacy_target_unchanged(resources):
+    """Targets without outputs continue to work exactly as before."""
+    runner = CliRunner()
+    path = resources / "targets-outputs.yaml"
+    result = runner.invoke(
+        app,
+        ["build", str(path), "--target", "no-outputs", "--tex"],
+        prog_name="bits",
+    )
+    if result.exit_code != 0:
+        print("CLI output:\n", result.output)
+    assert result.exit_code == 0
