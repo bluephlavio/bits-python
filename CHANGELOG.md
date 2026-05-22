@@ -1,3 +1,10 @@
+## v0.25.0 (2026-05-22)
+
+### Feat
+
+- add source dialect transforms
+- configure jinja syntax
+
 ## v0.24.0 (2026-05-17)
 
 ### Feat
