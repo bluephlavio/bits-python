@@ -10,6 +10,7 @@ class BitModel(BaseModel):
     author: str | None = None
     level: int | None = None
     kind: str | None = None
+    dialect: str | None = None
     defaults: Dict[str, Any] = {}
     presets: List[Dict[str, Any]] = []
     # src can be a single template string or a mapping of named fragments

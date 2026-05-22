@@ -177,6 +177,21 @@ You can call the macro from any bit/src or template:
     - `plugins`, `filter_files`, `macro_files` are ignored.
   - Useful for debugging or running in environments without project filters.
 
+Dialect Configuration
+
+- Optional source dialects are configured via `[dialects]`.
+- Each key is a dialect name. Each value points to a Python callable:
+
+```toml
+[dialects]
+example = "./plugins/example_dialect.py:transform"
+```
+
+- A bit opts in with `dialect: example`.
+- The callable transforms bit `src` before normal Jinja rendering.
+- `bits-python` does not define concrete syntax such as `@mcq`; workspaces do.
+- See `docs/dialects.md` for the transform signature and limitations.
+
 Preview and Build Defaults
 
 - Sections `[preview]`, `[preview.templates]`, and `[output]` control CLI
@@ -272,4 +287,3 @@ plugins = "/Users/me/bits-filters/math.py"
 
 Then use a small `.bitsrc` in each project only for project-specific paths
 and overrides.
-

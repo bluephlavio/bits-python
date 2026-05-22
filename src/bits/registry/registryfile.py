@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from pathlib import Path
 import copy
+import warnings
+from pathlib import Path
 from typing import Callable, List
 
 import jinja2
@@ -14,17 +15,16 @@ from ..constant import Constant
 from ..env import EnvironmentFactory
 from ..exceptions import RegistryLoadError, TemplateContextError, TemplateLoadError
 from ..helpers import normalize_path
-import warnings
 from ..models import (
     BitModel,
     BlocksModel,
     ConstantModel,
     ConstantsModel,
     RegistryDataModel,
+    SelectModel,
     TargetModel,
     WhereBitsModel,
     WhereConstantsModel,
-    SelectModel,
 )
 from ..target import Target
 from ..watcher import Watcher
@@ -77,7 +77,7 @@ class RegistryFile(Registry):
         for bit_model in bit_models:
             src = bit_model.src
             meta: dict = bit_model.dict(exclude={"src"})
-            bit: Bit = Bit(src, **meta)
+            bit: Bit = Bit(src, source_path=str(self._path), **meta)
             bit.tags.extend(common_tags)
             self._bits.append(bit)
 
@@ -220,8 +220,8 @@ class RegistryFile(Registry):
         Multi-extends: apply bases left->right; last wins. Finally apply derived fields, then
         apply derived 'overrides' (path-based) onto queries/context/compose.
         """
-        from .registryfile import RegistryFile as _RegistryFile
         from ..exceptions import RegistryReferenceError
+        from .registryfile import RegistryFile as _RegistryFile
 
         stack = stack or []
 

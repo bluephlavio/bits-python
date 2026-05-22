@@ -6,4 +6,5 @@
 - Compose: compose.md
 - Presets and Defaults: presets.md
 - Configuration and `.bitsrc`: config.md
+- Dialects: dialects.md
 - Testing Guide: testing.md

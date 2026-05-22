@@ -91,6 +91,43 @@ class ConfigValueError(ConfigError):
         super().__init__(message)
 
 
+# Dialect-related exceptions
+class DialectError(BitsError):
+    """Raised when a configured source dialect cannot be loaded or applied."""
+
+    def __init__(
+        self,
+        message="Dialect error",
+        *,
+        dialect=None,
+        line=None,
+        column=None,
+        source_path=None,
+        cause=None,
+    ):
+        self.message = message
+        self.dialect = dialect
+        self.line = line
+        self.column = column
+        self.source_path = source_path
+        self.cause = cause
+        super().__init__(self._format_message())
+        if cause is not None:
+            self.__cause__ = cause
+
+    def _format_message(self):
+        prefix = "Dialect error"
+        if self.dialect:
+            prefix += f" [{self.dialect}]"
+        if self.source_path:
+            prefix += f" in {self.source_path}"
+        if self.line is not None:
+            prefix += f" at line {self.line}"
+            if self.column is not None:
+                prefix += f", column {self.column}"
+        return f"{prefix}: {self.message}"
+
+
 # Template-related exceptions
 class TemplateError(BitsError):
     """Base class for template-related errors."""
