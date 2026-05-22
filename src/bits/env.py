@@ -1,14 +1,34 @@
 # pylint: disable=too-few-public-methods
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Dict, List
-
 import importlib.util
 import warnings
+from pathlib import Path
+from typing import Dict, List, Set
 
 from jinja2 import Environment, FileSystemLoader
+
 from .config import config
+
+DEFAULT_JINJA_SYNTAX: Dict[str, object] = {
+    "block_start_string": r"\BLOCK{",
+    "block_end_string": r"}",
+    "variable_start_string": r"\VAR{",
+    "variable_end_string": r"}",
+    "comment_start_string": r"\#{",
+    "comment_end_string": r"}",
+    "line_statement_prefix": r"%%",
+    "line_comment_prefix": r"%#",
+    "trim_blocks": True,
+    "lstrip_blocks": False,
+    "autoescape": False,
+}
+
+JINJA_SYNTAX_BOOLEAN_OPTIONS: Set[str] = {
+    "trim_blocks",
+    "lstrip_blocks",
+    "autoescape",
+}
 
 
 class EnvironmentFactory:
@@ -71,6 +91,31 @@ class EnvironmentFactory:
     @classmethod
     def _get_macro_files_list(cls) -> List[Path]:
         return cls._get_path_list("macro_files")
+
+    @classmethod
+    def _get_syntax_options(cls) -> Dict[str, object]:
+        syntax = dict(DEFAULT_JINJA_SYNTAX)
+        section = "jinja.syntax"
+        if not config.has_section(section):
+            return syntax
+
+        for key in DEFAULT_JINJA_SYNTAX:
+            if not config.has_option(section, key):
+                continue
+            if key in JINJA_SYNTAX_BOOLEAN_OPTIONS:
+                try:
+                    syntax[key] = config.getboolean(section, key)
+                except Exception:
+                    warnings.warn(
+                        f"Invalid boolean for [{section}] {key}; using default"
+                    )
+                continue
+            try:
+                syntax[key] = config.get(section, key)
+            except Exception:
+                warnings.warn(f"Invalid value for [{section}] {key}; using default")
+
+        return syntax
 
     @classmethod
     def _load_plugins(cls, env: Environment) -> None:
@@ -178,6 +223,9 @@ class EnvironmentFactory:
         else:
             base_key = str(templates_folder)
 
+        syntax_options = cls._get_syntax_options()
+        syntax_key = "syntax:" + repr(sorted(syntax_options.items()))
+
         # Hash plugin/macro/filter list for cache segregation
         try:
             plugin_list = (
@@ -203,7 +251,7 @@ class EnvironmentFactory:
             plugin_key = f"plugins:{int(cls._plugins_enabled)}"
             extras_key = ""
 
-        env_key = base_key + "|" + plugin_key + "|" + extras_key
+        env_key = base_key + "|" + plugin_key + "|" + extras_key + "|" + syntax_key
 
         if env_key in cls._env_cache:
             return cls._env_cache[env_key]
@@ -215,16 +263,7 @@ class EnvironmentFactory:
 
         env = Environment(
             loader=loader,
-            block_start_string=r"\BLOCK{",
-            block_end_string=r"}",
-            variable_start_string=r"\VAR{",
-            variable_end_string=r"}",
-            comment_start_string=r"\#{",
-            comment_end_string=r"}",
-            line_statement_prefix=r"%%",
-            line_comment_prefix=r"%#",
-            trim_blocks=True,
-            autoescape=False,
+            **syntax_options,
         )
 
         # Load user plugins last; allow overrides with warning emitted by plugin if desired

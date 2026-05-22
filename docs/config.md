@@ -88,6 +88,34 @@ filter_files = ./filters/simple_filters.py
 macro_files  = ${variables:templates}/macros/association.tex.j2
 ```
 
+- Configurable Jinja syntax:
+  - By default, bits uses LaTeX-friendly Jinja delimiters:
+    - variables: `\VAR{ ... }`
+    - blocks: `\BLOCK{ ... }`
+    - line statements: `%%`
+    - comments: `\#{ ... }`
+  - Advanced workspaces can override these in `[jinja.syntax]`.
+  - This is intended for experimentation and custom authoring workflows.
+    Existing projects should normally keep the defaults.
+
+```toml
+[jinja.syntax]
+block_start_string = "{%"
+block_end_string = "%}"
+variable_start_string = "{{"
+variable_end_string = "}}"
+comment_start_string = "{#"
+comment_end_string = "#}"
+line_statement_prefix = "%%"
+line_comment_prefix = "%#"
+trim_blocks = true
+lstrip_blocks = false
+autoescape = false
+```
+
+  - `.bitsrc` uses the same section and key names in INI syntax.
+  - In TOML, escape backslashes when spelling LaTeX-style delimiters.
+
 - `plugins`:
   - List of Python files that export `register(env)` and mutate the Jinja
     environment explicitly.
