@@ -1,3 +1,10 @@
+## v0.26.0 (2026-08-21)
+
+### Feat
+
+- add time metadata to bits
+- add time metadata to bits
+
 ## v0.25.0 (2026-05-22)
 
 ### Feat
