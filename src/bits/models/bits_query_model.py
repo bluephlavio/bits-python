@@ -11,6 +11,7 @@ class BitsQueryModel(BaseModel):  # pylint: disable=too-few-public-methods
     author: str | None = None
     kind: str | None = None
     level: int | None = None
+    time: int | None = None
 
 
 class WhereBitsModel(BitsQueryModel):  # pylint: disable=too-few-public-methods

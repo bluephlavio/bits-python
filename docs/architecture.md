@@ -69,7 +69,8 @@ Data Flow
      - `compose`: how to assemble list-of-lists and expose final names.
    - Named queries support:
      - `registry` (optional): resolve from another registry file.
-     - `where`: regex fields (`name`, `tags`, `num`, `author`, `kind`, `level`) plus `has`/`missing`.
+     - `where`: fields (`name`, `tags`, `num`, `author`, `kind`, `level`,
+       `time`) plus `has`/`missing`; scalar metadata use exact matching.
      - `select`: `{ indices (1-based), k|limit, offset, shuffle, sample, seed }`.
      - `preset`: bit preset selector (id or 1-based index; numeric strings try id then index).
      - `with`: structured overlay: `{ context: {...}, queries: {...} }`.

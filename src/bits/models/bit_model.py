@@ -1,6 +1,11 @@
 from typing import Any, Dict, List, Union
 
-from pydantic import BaseModel, Field, validator  # pylint: disable=no-name-in-module
+from pydantic import (  # pylint: disable=no-name-in-module
+    BaseModel,
+    Field,
+    StrictInt,
+    validator,
+)
 
 
 class BitModel(BaseModel):
@@ -11,10 +16,17 @@ class BitModel(BaseModel):
     level: int | None = None
     kind: str | None = None
     dialect: str | None = None
+    time: StrictInt | None = None
     defaults: Dict[str, Any] = {}
     presets: List[Dict[str, Any]] = []
     # src can be a single template string or a mapping of named fragments
     src: Union[str, Dict[str, str]] = Field(..., alias="src")
+
+    @validator("time")
+    def _validate_time(cls, value):  # noqa: N805 - pydantic signature
+        if value is not None and value < 1:
+            raise ValueError("time must be a positive number of minutes")
+        return value
 
     @validator("src")
     def _validate_src(cls, v):  # noqa: N805 - pydantic signature

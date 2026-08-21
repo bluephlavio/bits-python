@@ -1,0 +1,9 @@
+bits:
+  - name: Short exercise
+    time: 10
+    src: Short
+  - name: Medium exercise
+    time: 20
+    src: Medium
+  - name: Unestimated exercise
+    src: Unestimated

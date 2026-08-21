@@ -12,7 +12,12 @@ class TestRegistryFileParsersDumpers(unittest.TestCase):
         self.sample_data = RegistryDataModel(
             tags=["sample"],
             bits=[
-                BitModel(name="Sample Bit", src="$x + 1 = 0$", tags=["math"]),
+                BitModel(
+                    name="Sample Bit",
+                    src="$x + 1 = 0$",
+                    tags=["math"],
+                    time=15,
+                ),
             ],
             constants=[
                 ConstantModel(name="Sample Constant", symbol="SC", value=42),
