@@ -4,7 +4,9 @@
 - Supported names: `blocks`, `constants`.
 - Fields per sub-query:
   - `registry`: path to another registry to query (optional).
-  - `where`: filter fields (`id_`, `name`, `tags`, `num`, `author`, `kind`, `level`) with regex matching; supports `has` and `missing` lists.
+  - `where`: filter fields (`id_`, `name`, `tags`, `num`, `author`, `kind`,
+    `level`, `time`). Names support regular expressions, tags use containment,
+    and scalar metadata use exact matching. Also supports `has` and `missing`.
   - `select`: `{ indices (1-based), k|limit, offset, shuffle, sample, seed }`.
   - `preset`: pick a bit preset by id or by 1-based index (numeric strings try id first, then index).
   - `with`: structured overlay applied to every returned bit:

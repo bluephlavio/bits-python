@@ -22,6 +22,7 @@ class Bit(Element):
         source_path: str | None = None,
         defaults: dict | None = None,
         presets: list | None = None,
+        time: int | None = None,
         **kwargs,
     ):
         super().__init__(
@@ -31,6 +32,7 @@ class Bit(Element):
             kind=kind,
             level=level,
             dialect=dialect,
+            time=time,
             **kwargs,
         )
         # Raw src: either a single template string or a mapping of fragments
@@ -80,6 +82,10 @@ class Bit(Element):
     @property
     def dialect(self) -> str | None:
         return self._metadata["dialect"] if "dialect" in self._metadata else None
+
+    @property
+    def time(self) -> int | None:
+        return self._metadata["time"] if "time" in self._metadata else None
 
     @property
     def is_multi_fragment(self) -> bool:
@@ -151,6 +157,7 @@ class Bit(Element):
             kind=self.kind,
             level=self.level,
             dialect=self.dialect,
+            time=self.time,
             defaults=self.defaults,
             presets=self.presets,
             src=self.src,

@@ -6,8 +6,10 @@ Core Abstractions
 
 - Bit (`src/bits/bit.py`)
   - A single renderable item (exercise, snippet) written in LaTeX-flavored
-    Jinja. Has metadata (`name`, `tags`, `author`, `level`, `kind`),
+    Jinja. Has metadata (`name`, `tags`, `author`, `level`, `kind`, `time`),
     `defaults` for context, and `src` for the template.
+  - `time` is the estimated completion time, in whole positive minutes, for
+    an average student. An omitted value means that the duration is unknown.
   - Renders via `bit.render(**context)`.
 
 - Block (`src/bits/block.py`)
@@ -32,7 +34,7 @@ Core Abstractions
 Queries
 
 - Across collections, `query()` supports filters from models:
-  - Bits: `id_`, `name`, `tags`, `num`, `author`, `kind`, `level`.
+  - Bits: `id_`, `name`, `tags`, `num`, `author`, `kind`, `level`, `time`.
   - Constants: `id_`, `name`, `tags`.
 - Queries populate `blocks` or `constants` within context.
 
@@ -66,6 +68,7 @@ imports:
 bits:
   - name: Linear Equation
     tags: [equation]
+    time: 10
     defaults: { a: 1, b: -3 }
     src: |
       Solve: $\VAR{a}x + \VAR{b} = 0$.
@@ -90,6 +93,7 @@ targets:
 ---
 name:: Linear Equation
 tags:: [equation]
+time:: 10
 defaults:: { a: 1, b: -3 }
 
 ```latex
